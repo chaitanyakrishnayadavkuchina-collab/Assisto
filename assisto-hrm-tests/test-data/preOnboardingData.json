@@ -1,0 +1,16 @@
+{
+  "newDocument": {
+    "country": "India",
+    "documentName": "Test Document",
+    "documentGroup": "Id Proof",
+    "requestedFor": "Both",
+    "employeeType": "FTE",
+    "mandatory": true
+  },
+  "consentForm": {
+    "description": "Standard consent form for pre-onboarding"
+  },
+  "linkExpiry": {
+    "days": 7
+  }
+}

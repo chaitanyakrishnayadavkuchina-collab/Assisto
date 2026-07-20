@@ -1,0 +1,46 @@
+{
+  "documentRequest": {
+    "firstName": "Chaitu",
+    "lastName": "c",
+    "email": "chai@yopmail.com",
+    "mobile": "8947899535",
+    "dialCode": "India (+91)",
+    "joiningDate": "17-07-2026",
+    "hiringPosition": "Software engineer",
+    "employeeType": "Full Time",
+    "candidateType": "Fresher",
+    "country": "India"
+  },
+  "candidateDetails": {
+    "firstName": "Chaitu",
+    "lastName": "c",
+    "personalEmail": "chai@yopmail.com",
+    "mobileNumber": "8947899535",
+    "dialCode": "India (+91)",
+    "dateOfBirth": "01-01-1995",
+    "nationalId": "1234567890"
+  },
+  "idProofs": {
+    "aadhaarNumber": "1234 5678 9012",
+    "aadhaarName": "Chaitu c",
+    "panNumber": "ABCDE1234F",
+    "panName": "Chaitu c",
+    "panFatherName": "Father Name"
+  },
+  "education": {
+    "endYear": "2020",
+    "institutionName": "Test College",
+    "degree": "B.Tech",
+    "specialization": "Computer Science",
+    "startYear": "2016",
+    "gpa": "8.5"
+  },
+  "offerLetter": {
+    "template": "Offer_Letter_2026",
+    "position": "Software engineer",
+    "company": "NSP",
+    "startDate": "02-07-2026",
+    "ctc": "₹12,01,000 P.A.",
+    "rejectionReason": "The compensation offered does not meet my expectations"
+  }
+}

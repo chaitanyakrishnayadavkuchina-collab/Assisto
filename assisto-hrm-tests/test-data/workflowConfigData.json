@@ -1,0 +1,146 @@
+{
+  "milestones": {
+    "personalInformation": {
+      "name": "1. Personal Information",
+      "defaultSequence": 1,
+      "defaultSLA": 24,
+      "chroBypass": false
+    },
+    "documentUpload": {
+      "name": "2. Document Upload",
+      "defaultSequence": 2,
+      "defaultSLA": 48,
+      "chroBypass": false
+    },
+    "documentVerification": {
+      "name": "3. Document Verification",
+      "defaultSequence": 3,
+      "defaultSLA": 24,
+      "chroBypass": true
+    },
+    "backgroundVerification": {
+      "name": "4. Background Verification (BGV)",
+      "status": "Coming soon"
+    },
+    "payrollBenefits": {
+      "name": "5. Payroll & Benefits",
+      "status": "Coming soon"
+    },
+    "offerLetterRelease": {
+      "name": "6. Offer Letter Release",
+      "defaultSequence": 6,
+      "defaultSLA": 36,
+      "chroBypass": false
+    }
+  },
+  "formSections": {
+    "personalInformation": {
+      "name": "Personal Information",
+      "fields": ["First Name", "Last Name", "Date Of Birth", "Gender", "Nationality", "Dial Code", "Mobile Number", "Email", "National ID"],
+      "enabled": true
+    },
+    "emergencyContact": {
+      "name": "Emergency Contact",
+      "fields": ["Emergency Contact Name", "Emergency Contact Relationship", "Emergency Contact Phone", "Emergency Contact Alternate"],
+      "enabled": false
+    },
+    "addressInformation": {
+      "name": "Address Information",
+      "fields": ["Current Address", "Permanent Address", "Same as Current", "City", "State", "Country", "Postal Code"],
+      "enabled": true
+    },
+    "additionalInfo": {
+      "name": "Additional Info",
+      "fields": ["Marital Status", "Spouse Name", "Dependents", "Blood Group"],
+      "enabled": false
+    },
+    "candidatePhoto": {
+      "name": "Candidate Photo",
+      "fields": ["Photo"],
+      "enabled": true
+    }
+  },
+  "documentVerification": {
+    "managedBy": "AI + HR Review (Recommended)",
+    "managedByOptions": ["AI + HR Review (Recommended)", "HR Only", "AI Only"],
+    "aiConfidenceThreshold": 85,
+    "aiConfidenceRange": {
+      "min": 0,
+      "max": 100,
+      "step": 1
+    }
+  },
+  "offerLetterRelease": {
+    "templates": ["Offer_Letter_2026", "Offer letter june", "Offer letter updated", "Offer_letter_May", "june_26", "Offer_Letter", "Offer letter with conveyance and internet allowance", "Offer Letter APR", "NEW_Offer_Letter", "offer letter demo"],
+    "defaultExpiryDays": 7,
+    "defaultESignatureProvider": "Built-In (Default)",
+    "requireManagementApproval": true,
+    "approvalChain": {
+      "chainName": "Standard Offer Approval",
+      "levels": [
+        {
+          "name": "CHRO",
+          "type": "Any one (first wins)",
+          "role": "CHRO",
+          "canSign": true
+        },
+        {
+          "name": "Business Hr",
+          "type": "Any one (first wins)",
+          "role": "Business HR",
+          "canSign": true
+        }
+      ]
+    },
+    "approvalTypes": ["Single approver", "Any one (first wins)", "All must approve"],
+    "roleOptions": ["Group manager", "HR Manager", "Test Sync Update", "BU Head", "NSP", "CHRO", "IT Support"]
+  },
+  "invalidConfigurations": {
+    "negativeSequenceOrder": -1,
+    "zeroSequenceOrder": 0,
+    "veryLargeSequenceOrder": 999999,
+    "negativeSLA": -10,
+    "zeroSLA": 0,
+    "veryLargeSLA": 99999,
+    "invalidOfferExpiry": -1,
+    "zeroOfferExpiry": 0,
+    "specialCharsChainName": "!@#$%^&*()",
+    "veryLongChainName": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "emptyChainName": ""
+  },
+  "workflowConfigurations": {
+    "reorderSequence": {
+      "personalInformation": 3,
+      "documentUpload": 1,
+      "documentVerification": 2,
+      "offerLetterRelease": 4
+    },
+    "enableEmergencyContact": {
+      "sectionName": "Emergency Contact",
+      "shouldEnable": true
+    },
+    "disableAddressInfo": {
+      "sectionName": "Address Information",
+      "shouldEnable": false
+    },
+    "updateSLA": {
+      "documentUploadSLA": 72,
+      "documentVerificationSLA": 48
+    },
+    "updateApprovalChain": {
+      "newChainName": "Premium Offer Approval",
+      "addLevel": {
+        "name": "Finance Director",
+        "type": "All must approve",
+        "role": "Finance Director",
+        "canSign": true
+      }
+    },
+    "changeEsignature": {
+      "newProvider": "DocuSign"
+    },
+    "changeAiThreshold": {
+      "newValue": 95
+    }
+  }
+}

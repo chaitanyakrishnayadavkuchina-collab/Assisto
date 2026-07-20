@@ -1,0 +1,184 @@
+{
+  "validTemplates": {
+    "offerLetter": {
+      "title": "Offer Letter - Standard",
+      "prefix": "OL",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "001",
+      "letterType": "Offer Letter"
+    },
+    "appointmentLetter": {
+      "title": "Appointment Letter",
+      "prefix": "AL",
+      "format": "YYYYMMDD",
+      "suffix": "-A",
+      "index": "001",
+      "letterType": "Appointment Letter"
+    },
+    "joiningLetter": {
+      "title": "Joining Confirmation Letter",
+      "prefix": "JC",
+      "format": "YYMMDD",
+      "suffix": "",
+      "index": "0001",
+      "letterType": "Joining Letter"
+    },
+    "documentRequest": {
+      "title": "Document Request Letter",
+      "prefix": "DR",
+      "format": "YYYY-MM-DD",
+      "suffix": "-REQ",
+      "index": "001",
+      "letterType": "Document Request"
+    },
+    "backgroundVerification": {
+      "title": "Background Verification Consent",
+      "prefix": "BV",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "00001",
+      "letterType": "Verification Letter"
+    }
+  },
+  "invalidTemplates": {
+    "emptyTitle": {
+      "title": "",
+      "prefix": "OL",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "001",
+      "letterType": "Offer Letter"
+    },
+    "emptyNumberSeries": {
+      "title": "Valid Template",
+      "prefix": "",
+      "format": "",
+      "suffix": "",
+      "index": "",
+      "letterType": ""
+    },
+    "specialCharsInTitle": {
+      "title": "Offer<Letter>&Test\"Special!@#$%",
+      "prefix": "OL",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "001",
+      "letterType": "Offer Letter"
+    },
+    "invalidPrefixNumbers": {
+      "title": "Invalid Prefix Template",
+      "prefix": "123456",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "001",
+      "letterType": "Offer Letter"
+    },
+    "emptyPrefix": {
+      "title": "Empty Prefix Template",
+      "prefix": "",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "001",
+      "letterType": "Offer Letter"
+    },
+    "longTitle": {
+      "title": "This is an extremely long template title that exceeds the maximum character limit for letter template names in the system",
+      "prefix": "LT",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "001",
+      "letterType": "Offer Letter"
+    },
+    "duplicatePrefix": {
+      "title": "Duplicate Prefix Template",
+      "prefix": "OL",
+      "format": "YYYYMMDD",
+      "suffix": "",
+      "index": "002",
+      "letterType": "Offer Letter"
+    }
+  },
+  "uploadDocument": {
+    "validDocFiles": [
+      ".doc",
+      ".docx"
+    ],
+    "invalidDocFiles": [
+      ".pdf",
+      ".txt",
+      ".xls",
+      ".xlsx",
+      ".png",
+      ".jpg"
+    ],
+    "maxFileSizeMB": 10,
+    "sampleFileName": "offer_letter_template.docx",
+    "largeFileName": "very_large_template.docx"
+  },
+  "letterTypes": [
+    "Offer Letter",
+    "Appointment Letter",
+    "Joining Letter",
+    "Document Request",
+    "Verification Letter",
+    "Background Verification"
+  ],
+  "numberSeriesPatterns": {
+    "withDate": "YYYYMMDD",
+    "withDateDash": "YYYY-MM-DD",
+    "withYearMonth": "YYMMDD",
+    "customFormat": "OL-YYYYMMDD-001"
+  },
+  "edgeCases": {
+    "minimumValidTitle": "A",
+    "maximumAllowedTitle": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "minimumIndex": "0",
+    "maximumIndex": "99999",
+    "specialCharPrefix": "OL/TEST",
+    "unicodeTitle": "Offer Letter - हेल्लो प्री-बोर्डिंग",
+    "numericOnlyTitle": "12345"
+  },
+  "expectedBehaviors": {
+    "viewModal": {
+      "shouldContainLetterContent": true,
+      "shouldHaveCloseButton": true,
+      "shouldHaveZoomControls": true
+    },
+    "createWizard": {
+      "steps": [
+        "General Information",
+        "Upload Document",
+        "Preview Letter"
+      ],
+      "validationOnStep1": [
+        "Title is required",
+        "Number Series is required",
+        "Letter Type is required"
+      ]
+    },
+    "deleteConfirmation": {
+      "shouldShowConfirmDialog": true,
+      "shouldRequireConfirmation": true
+    }
+  },
+  "bugReports": {
+    "400Errors": {
+      "description": "Bad Request errors indicate server-side validation issues",
+      "triggers": [
+        "Submitting form with empty required fields",
+        "Uploading files larger than 10MB",
+        "Invalid file formats",
+        "Missing number series components"
+      ]
+    },
+    "500Errors": {
+      "description": "Internal Server Error indicates server-side failures",
+      "triggers": [
+        "Invalid template data structure",
+        "Database connectivity issues during save",
+        "Template rendering failures in preview"
+      ]
+    }
+  }
+}

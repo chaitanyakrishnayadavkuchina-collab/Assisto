@@ -1,0 +1,27 @@
+{
+  "validUser": {
+    "email": "orgnization1@sharklasers.com",
+    "password": "Welcome@123"
+  },
+  "invalidUser": {
+    "email": "wrong@example.com",
+    "password": "WrongPass123!"
+  },
+  "emptyFields": {
+    "email": "",
+    "password": ""
+  },
+  "partialFields": {
+    "email": "test@example.com",
+    "password": ""
+  },
+  "forgotPasswordEmail": "orgnization1@sharklasers.com",
+  "newPassword": {
+    "newPassword": "Welcome@456",
+    "confirmPassword": "Welcome@456"
+  },
+  "mismatchedPasswords": {
+    "newPassword": "Welcome@456",
+    "confirmPassword": "Welcome@789"
+  }
+}

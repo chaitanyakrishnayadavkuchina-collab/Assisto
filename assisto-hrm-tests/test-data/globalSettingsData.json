@@ -1,0 +1,78 @@
+{
+  "companyProfile": {
+    "legalEntityName": "Assisto HRM Pvt Ltd",
+    "superAdminEmail": "admin@assistio.io",
+    "publicContactEmail": "public@assistio.io",
+    "registeredCountry": "India",
+    "registeredState": "Karnataka",
+    "operationalTimezone": "Asia/Kolkata",
+    "corporateHeadquartersAddress": "Bangalore, Karnataka, India"
+  },
+  "companyProfileInvalidEmails": {
+    "superAdminEmail": "not-an-email",
+    "publicContactEmail": "also-not-an-email"
+  },
+  "companyProfileEmpty": {
+    "legalEntityName": "",
+    "superAdminEmail": "",
+    "publicContactEmail": "",
+    "registeredCountry": "",
+    "registeredState": "",
+    "operationalTimezone": "",
+    "corporateHeadquartersAddress": ""
+  },
+  "companyProfileRequiredOnly": {
+    "legalEntityName": "Required Entity Name",
+    "corporateHeadquartersAddress": "Required Address, State, Country"
+  },
+  "regulatoryNumbers": {
+    "pfRegistrationId": "123/456/789/0000000000",
+    "incomeTaxRegistration": "AABCT1234A",
+    "panCardNumber": "ABCDE1234F",
+    "esiRegistrationCode": "MHMUM1234567890",
+    "linLabourIdentification": "LIN123456789",
+    "gstin": "22AABCT1234A1Z5",
+    "cinCorporateIdentity": "L12345MH2020PTC123456"
+  },
+  "regulatoryNumbersEmpty": {
+    "pfRegistrationId": "",
+    "incomeTaxRegistration": "",
+    "panCardNumber": "",
+    "esiRegistrationCode": "",
+    "linLabourIdentification": "",
+    "gstin": "",
+    "cinCorporateIdentity": ""
+  },
+  "validBusinessUnit": {
+    "name": "QA Test Team",
+    "code": "QAT-001",
+    "unitHead": "ManojKumar"
+  },
+  "validBusinessUnit2": {
+    "name": "Dev Test Squad",
+    "code": "DTS-002",
+    "unitHead": "Kalyanachari S"
+  },
+  "validBusinessUnitWithDescription": {
+    "name": "Testing Unit",
+    "code": "TU-003",
+    "unitHead": "ManojKumar",
+    "description": "Unit for automated test scenarios"
+  },
+  "invalidBusinessUnitEmpty": {
+    "name": "",
+    "code": "",
+    "unitHead": ""
+  },
+  "invalidBusinessUnitMissingCode": {
+    "name": "Missing Code Unit",
+    "code": "",
+    "unitHead": "ManojKumar"
+  },
+  "invalidBusinessUnitDuplicate": {
+    "name": "QA Test Team",
+    "code": "QAT-001",
+    "unitHead": "ManojKumar"
+  },
+  "longLegalEntityName": "ThisIsAVeryLongLegalEntityNameThatExceedsTheMaximumAllowedCharacterLimitForTestingPurposesOnlyAndShouldNotBeUsedInProduction"
+}
