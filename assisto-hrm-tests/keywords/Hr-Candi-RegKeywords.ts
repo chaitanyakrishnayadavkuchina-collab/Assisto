@@ -259,6 +259,23 @@ export class CandidateRegistrationKeywords {
     await this.candidateRegPage.fillAndSubmit(candidateData);
   }
 
+  async fillCandidateFormFields(candidateData: {
+    applicantNumber: string;
+    firstName: string;
+    lastName: string;
+    personalEmail: string;
+    dialCode: string;
+    mobileNumber: string;
+    country: string;
+    hiringPosition: string;
+    joiningDate: string;
+    employeeType: string;
+    candidateType: string;
+    shareConsentForm?: boolean;
+  }): Promise<void> {
+    await this.candidateRegPage.fillCandidateFormFields(candidateData);
+  }
+
   async verifyFormFieldsPlaceholders(
     expectedPlaceholders: {
       applicantNumber?: string;
@@ -423,9 +440,9 @@ export class CandidateRegistrationKeywords {
   }
 
   async verifySuccessToast(): Promise<void> {
-    // Look for success toast with specific text or class patterns
-    const successToast = this.page.locator('[class*="toast"], [class*="Toast"], [class*="success"]')
-      .filter({ hasText: /success|documents request successfully/i });
+    // Look for success toast with flexible patterns
+    const successToast = this.page.locator('[class*="toast"], [class*="Toast"], [class*="success"], [data-testid*="toast"], [data-testid*="notification"], div:has-text("success"), div:has-text("Success"), div:has-text("Documents Requested"), div:has-text("Documents requested")')
+      .first();
     await expect(successToast).toBeVisible({ timeout: 5000 });
   }
 

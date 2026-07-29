@@ -43,6 +43,16 @@ export class CandidatePreOnboardingPage {
   readonly saveContinueButton: Locator;
 
   // ==========================================
+  //  ADDRESS INFORMATION FORM
+  // ==========================================
+  readonly addressLine1Input: Locator;
+  readonly addressCountryDropdown: Locator;
+  readonly addressStateDropdown: Locator;
+  readonly addressCityDropdown: Locator;
+  readonly addressPinCodeInput: Locator;
+  readonly permanentAddressSameCheckbox: Locator;
+
+  // ==========================================
   //  PHASE 2: DOCUMENT UPLOAD
   // ==========================================
   readonly documentUploadCard: Locator;
@@ -178,11 +188,19 @@ export class CandidatePreOnboardingPage {
     this.lastNameInput = page.getByRole('textbox', { name: 'Last Name' });
     this.personalEmailInput = page.getByRole('textbox', { name: /Personal Email/i });
     this.alternateEmailInput = page.getByRole('textbox', { name: /Alternate Email/i });
-    this.mobileDialCodeDropdown = page.getByRole('combobox').filter({ has: page.getByText(/\+\d+/) }).first();
-    this.mobileNumberInput = page.getByRole('textbox', { name: 'Mobile Number' });
-    this.dateOfBirthInput = page.getByRole('textbox', { name: 'Date of Birth' });
+    this.mobileDialCodeDropdown = page.locator('div').filter({ hasText: /^Mobile Number\s*\*?/ }).getByRole('combobox').first();
+    this.mobileNumberInput = page.getByRole('textbox', { name: 'Enter mobile number' });
+    this.dateOfBirthInput = page.getByRole('combobox', { name: 'DD/MM/YYYY' });
     this.nationalIdInput = page.getByRole('textbox', { name: 'National ID / SSN' });
-    this.saveContinueButton = page.getByRole('button', { name: 'Save & Continue' });
+    this.saveContinueButton = page.getByRole('button', { name: /Submit & Continue/ });
+
+    // ── Address Information ──
+    this.addressLine1Input = page.getByRole('textbox', { name: 'Address Line 1' }).first();
+    this.addressCountryDropdown = page.getByRole('combobox', { name: 'Country' }).first();
+    this.addressStateDropdown = page.getByRole('combobox', { name: 'State' }).first();
+    this.addressCityDropdown = page.getByRole('combobox', { name: 'City' }).first();
+    this.addressPinCodeInput = page.getByRole('textbox', { name: 'PIN / ZIP Code' }).first();
+    this.permanentAddressSameCheckbox = page.getByRole('checkbox', { name: /Permanent address is the same as current address/i });
 
     // ── Document Upload ──
     this.documentUploadCard = page.getByRole('heading', { name: 'Document Upload' }).locator('..').locator('..');
@@ -344,12 +362,42 @@ export class CandidatePreOnboardingPage {
   async fillAlternateEmail(v: string): Promise<void> { await this.alternateEmailInput.fill(v); }
 
   async selectDialCode(value: string): Promise<void> {
-    await this.mobileDialCodeDropdown.click();
-    await this.page.getByText(value).first().click();
+    const currentValue = await this.mobileDialCodeDropdown.inputValue().catch(() => '');
+    if (currentValue && (currentValue.includes(value) || currentValue.includes(value.replace('+', '')))) {
+      console.log(`Dial code already set to: ${currentValue}, skipping`);
+      return;
+    }
+    console.log(`Selecting dial code: ${value}`);
+    await this.mobileDialCodeDropdown.waitFor({ state: 'visible', timeout: 10000 });
+    await this.mobileDialCodeDropdown.click({ force: true, timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await this.page.keyboard.type(value, { delay: 50 });
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await this.page.keyboard.press('Enter');
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
   async fillMobileNumber(v: string): Promise<void> { await this.mobileNumberInput.fill(v); }
-  async fillDateOfBirth(v: string): Promise<void> { await this.dateOfBirthInput.fill(v); }
+  async fillDateOfBirth(v: string): Promise<void> {
+    await this.dateOfBirthInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.dateOfBirthInput.click({ force: true });
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await this.page.evaluate((value: string) => {
+      const input = document.querySelector('[aria-label="DD/MM/YYYY"]') as HTMLInputElement;
+      if (input) {
+        const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+        if (nativeSetter) {
+          nativeSetter.call(input, value);
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          input.dispatchEvent(new Event('blur', { bubbles: true }));
+        }
+      }
+    }, v);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await this.page.keyboard.press('Escape');
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
   async fillNationalId(v: string): Promise<void> { await this.nationalIdInput.fill(v); }
 
   async clickSaveAndContinue(): Promise<void> { await this.saveContinueButton.click(); }
@@ -357,6 +405,7 @@ export class CandidatePreOnboardingPage {
   async fillPersonalInformation(data: {
     firstName: string; lastName: string; alternateEmail?: string;
     dialCode: string; mobileNumber: string; dateOfBirth?: string; nationalId?: string;
+    address?: { addressLine1: string; country: string; state: string; city: string; pinCode: string };
   }): Promise<void> {
     await this.fillFirstName(data.firstName);
     await this.fillLastName(data.lastName);
@@ -365,7 +414,45 @@ export class CandidatePreOnboardingPage {
     await this.fillMobileNumber(data.mobileNumber);
     if (data.dateOfBirth) await this.fillDateOfBirth(data.dateOfBirth);
     if (data.nationalId) await this.fillNationalId(data.nationalId);
-    await this.clickSaveAndContinue();
+    
+    if (data.address) {
+      await this.fillAddressInformation(data.address);
+    }
+  }
+
+  async selectDropdownByLabel(combobox: Locator, value: string): Promise<void> {
+    await combobox.waitFor({ state: 'visible', timeout: 10000 });
+    await combobox.scrollIntoViewIfNeeded();
+    await combobox.click({ force: true, timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await combobox.fill('');
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await combobox.fill(value);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await this.page.keyboard.press('Enter');
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+
+  async fillAddressInformation(data: {
+    addressLine1: string; country: string; state: string; city: string; pinCode: string;
+  }): Promise<void> {
+    await this.addressLine1Input.fill(data.addressLine1);
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    await this.selectDropdownByLabel(this.addressCountryDropdown, data.country);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await this.selectDropdownByLabel(this.addressStateDropdown, data.state);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await this.selectDropdownByLabel(this.addressCityDropdown, data.city);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await this.addressPinCodeInput.fill(data.pinCode);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await this.permanentAddressSameCheckbox.click({ force: true });
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
   // ==========================================
@@ -427,19 +514,19 @@ export class CandidatePreOnboardingPage {
   }
 
   async fillCompleteForm(
-    personalData: { firstName: string; lastName: string; alternateEmail?: string; dialCode: string; mobileNumber: string; dateOfBirth?: string; nationalId?: string },
+    personalData: { firstName: string; lastName: string; alternateEmail?: string; dialCode: string; mobileNumber: string; dateOfBirth?: string; nationalId?: string; address?: { addressLine1: string; country: string; state: string; city: string; pinCode: string } },
     idProofsData: { aadhaarNumber: string; aadhaarName: string; panNumber: string; panName: string; panFatherName: string },
     educationData: { endYear: string; institutionName: string; degree: string; specialization: string; startYear: string; gpa: string },
   ): Promise<void> {
     await this.fillPersonalInformation(personalData);
     await this.page.waitForLoadState('networkidle');
-    await await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await this.fillIdProofs(idProofsData);
-    await await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     await this.clickEducationTab();
-    await await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     await this.fillEducation(educationData);
   }
@@ -557,7 +644,7 @@ export class CandidatePreOnboardingPage {
 
   async rejectOfferWithReason(reason: string): Promise<void> {
     await this.clickRejectOffer();
-    await await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500));
     await this.fillRejectionReason(reason);
     await this.clickConfirmRejection();
   }

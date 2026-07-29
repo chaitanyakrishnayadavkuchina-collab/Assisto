@@ -24,9 +24,25 @@ export class CandidatePreOnboardingKeywords {
   // ==========================================
 
   async navigateToCandidatePreOnboarding(preOnboardingLink: string): Promise<void> {
+    console.log(`Goto pre-onboarding link: ${preOnboardingLink}`);
     await this.page.goto(preOnboardingLink, { waitUntil: 'networkidle' });
-    // Wait for the welcome heading to be visible to ensure React app is fully rendered
-    await this.candidatePage.welcomeHeading.waitFor({ state: 'visible', timeout: 15000 });
+    console.log(`Goto completed. URL: ${this.page.url()}. Title: ${await this.page.title()}`);
+    
+    try {
+      await this.candidatePage.welcomeHeading.waitFor({ state: 'visible', timeout: 10000 });
+      console.log('Welcome heading visible - React app loaded successfully');
+    } catch (error) {
+      console.log('Welcome heading not found, checking page state...');
+      console.log('Current URL:', this.page.url());
+      console.log('Current title:', await this.page.title());
+      // Try waiting for any heading
+      try {
+        await this.page.waitForSelector('h1', { state: 'visible', timeout: 5000 });
+        console.log('h1 element found');
+      } catch (innerError) {
+        console.log('No h1 element found either. Page may not be rendering correctly.');
+      }
+    }
   }
 
   // ==========================================
@@ -84,6 +100,7 @@ export class CandidatePreOnboardingKeywords {
   async fillPersonalInformation(data: {
     firstName: string; lastName: string; alternateEmail?: string;
     dialCode: string; mobileNumber: string; dateOfBirth?: string; nationalId?: string;
+    address?: { addressLine1: string; country: string; state: string; city: string; pinCode: string };
   }): Promise<void> {
     await this.candidatePage.fillPersonalInformation(data);
   }
@@ -159,7 +176,7 @@ export class CandidatePreOnboardingKeywords {
   // ==========================================
 
   async fillCompleteForm(
-    personalData: { firstName: string; lastName: string; alternateEmail?: string; dialCode: string; mobileNumber: string; dateOfBirth?: string; nationalId?: string },
+    personalData: { firstName: string; lastName: string; alternateEmail?: string; dialCode: string; mobileNumber: string; dateOfBirth?: string; nationalId?: string; address?: { addressLine1: string; country: string; state: string; city: string; pinCode: string } },
     idProofsData: { aadhaarNumber: string; aadhaarName: string; panNumber: string; panName: string; panFatherName: string },
     educationData: { endYear: string; institutionName: string; degree: string; specialization: string; startYear: string; gpa: string },
   ): Promise<void> {

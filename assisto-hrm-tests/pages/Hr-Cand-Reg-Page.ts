@@ -101,13 +101,13 @@ export class CandidateRegistrationPage {
     // Summary Cards - use more robust locators based on actual DOM structure
     // Cards are arranged in a flex/grid layout with each card containing text and count
     // Use more specific pattern to match summary card text (e.g., "Verified 36")
-    this.verifiedCard = page.locator('div').filter({ hasText: /Verified\s+\d+/ }).first();
+    this.verifiedCard = page.locator('div').filter({ hasText: /Verified\s*\d+/ }).first();
     this.verifiedCount = this.verifiedCard.locator('text=/\d+/').first();
-    this.notVerifiedCard = page.locator('div').filter({ hasText: /Not Verified\s+\d+/ }).first();
+    this.notVerifiedCard = page.locator('div').filter({ hasText: /Not Verified\s*\d+/ }).first();
     this.notVerifiedCount = this.notVerifiedCard.locator('text=/\d+/').first();
-    this.inProgressCard = page.locator('div').filter({ hasText: /In Progress\s+\d+/ }).first();
+    this.inProgressCard = page.locator('div').filter({ hasText: /In Progress\s*\d+/ }).first();
     this.inProgressCount = this.inProgressCard.locator('text=/\d+/').first();
-    this.rejectedCard = page.locator('div').filter({ hasText: /Rejected\s+\d+/ }).first();
+    this.rejectedCard = page.locator('div').filter({ hasText: /Rejected\s*\d+/ }).first();
     this.rejectedCount = this.rejectedCard.locator('text=/\d+/').first();
 
     // Action Bar
@@ -179,8 +179,8 @@ export class CandidateRegistrationPage {
     this.shareConsentToggle = page.locator('[class*="toggle"], [class*="Toggle"], [role="switch"]').last();
     this.shareConsentLabel = page.getByText('Share consent form with the candidate');
 
-    // Validation/Error Messages
-    this.requiredFieldIndicator = page.getByRole('alert').filter({ visible: true }).first();
+    // Validation/Error Messages - check for alert role, error text, or common validation patterns
+    this.requiredFieldIndicator = page.locator('[role="alert"], [class*="error"], [class*="Error"], span:text("required"), span:text("Required")').filter({ visible: true }).first();
     this.duplicateApplicantError = page.locator('text=/already exists|duplicate|already registered/i').filter({ visible: true }).first();
   }
 
@@ -575,46 +575,30 @@ export class CandidateRegistrationPage {
   }
 
   async selectJoiningDate(value: string): Promise<void> {
-    // Use JavaScript to directly set the value and dispatch input events
-    // This bypasses all actionability checks and calendar popups
-    await this.page.evaluate((dateValue: string) => {
-      // Find all input elements with placeholder containing DD/MM
-      const inputs = document.querySelectorAll<HTMLInputElement>('input[type="text"][placeholder*="DD/MM"], input[id*="datePicker"]');
-      let targetInput: HTMLInputElement | null = null;
-      
-      // Filter to find the one inside a drawer/dialog
-      for (let i = 0; i < inputs.length; i++) {
-        const input = inputs[i];
-        const parent = input.closest('[role="dialog"], [class*="drawer"], [class*="Drawer"]');
-        if (parent && input.parentElement) {
-          targetInput = input;
-          break;
-        }
-      }
-      
-      if (!targetInput) {
-        // Fallback: find any date input
-        for (let i = 0; i < inputs.length; i++) {
-          const input = inputs[i];
-          if (input.parentElement) {
-            targetInput = input;
-            break;
-          }
-        }
-      }
-      
-      if (targetInput) {
-        // Directly set the value using property setter and dispatch events
-        (targetInput as any).value = dateValue;
-        const event1 = new Event('input', { bubbles: true });
-        const event2 = new Event('change', { bubbles: true });
-        targetInput.dispatchEvent(event1);
-        targetInput.dispatchEvent(event2);
-      }
-    }, value);
+    console.log(`Setting Joining Date to: ${value}`);
+    const combobox = this.joiningDateField;
+    await combobox.waitFor({ state: 'visible', timeout: 10000 });
+    await combobox.scrollIntoViewIfNeeded();
     
-    // Small wait for UI to update
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Click the combobox to focus it
+    await combobox.click({ force: true, timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Select all existing text and type the date using keyboard
+    await this.page.keyboard.press('Control+a');
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await this.page.keyboard.type(value, { delay: 50 });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Press Enter to confirm the date
+    await this.page.keyboard.press('Enter');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Click on the form title to close any date picker overlay
+    await this.page.keyboard.press('Tab');
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    console.log(`Joining Date set to: ${value}`);
   }
 
   async isEmployeeTypeDropdownVisible(): Promise<boolean> {
@@ -698,49 +682,50 @@ export class CandidateRegistrationPage {
   }
 
   async selectDropdownByLabel(label: string, value: string): Promise<void> {
-    const drawer = this.drawer;
-    const combobox = drawer.locator('div').filter({ hasText: new RegExp(`^${label}\\*?$`) }).getByRole('combobox').first();
-    
-    // Wait longer and scroll into view
-    await combobox.waitFor({ state: 'visible', timeout: 30000 });
+    console.log(`Attempting to select ${value} from ${label} dropdown`);
+
+    const combobox = this.page.locator('div').filter({ hasText: new RegExp(`^${label}\\*?$`) }).getByRole('combobox').first();
+    await combobox.waitFor({ state: 'visible', timeout: 15000 });
     await combobox.scrollIntoViewIfNeeded();
+
+    await combobox.click({ force: true, timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await combobox.fill('');
+    await new Promise(resolve => setTimeout(resolve, 200));
+    await combobox.fill(value);
     await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Try clicking with force option to bypass overlays
+
     try {
-      await combobox.click({ force: true, timeout: 5000 });
-    } catch (clickError) {
-      console.log(`Click failed, trying alternative method: ${clickError}`);
-      // Use JavaScript to click if direct click fails
-      await this.page.evaluate((el) => el.click(), combobox);
+      await this.page.keyboard.press('Enter');
+      console.log(`Selected ${value} from ${label} via typing and Enter key`);
+      return;
+    } catch {
+      console.log(`Pressing Enter failed, trying click on option`);
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For custom comboboxes, typing may not work. Try direct option selection.
-    const optionSelectors = [
-      this.page.getByRole('option', { name: value, exact: true }),
-      this.page.locator('[role="listbox"]').getByRole('option', { name: value, exact: true }),
-      this.page.locator('[role="listbox"]').getByRole('option', { name: new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') }).first(),
-    ];
-    
-    let clicked = false;
-    for (const selector of optionSelectors) {
-      try {
-        await selector.waitFor({ state: 'visible', timeout: 5000 });
-        await selector.scrollIntoViewIfNeeded();
-        await selector.click({ force: true, timeout: 5000 });
-        clicked = true;
-        console.log(`Successfully selected ${value}`);
-        break;
-      } catch (error) {
-        console.log(`Failed to click option with selector: ${selector.toString()}`);
-      }
+
+    const option = this.page.locator('[role="listbox"] [role="option"]').filter({ hasText: value }).first();
+    try {
+      await option.waitFor({ state: 'visible', timeout: 5000 });
+      await option.click({ force: true, timeout: 5000 });
+      console.log(`Selected ${value} from ${label} via click on option`);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return;
+    } catch {
+      console.log(`Clicking option failed`);
     }
-    
-    if (!clicked) {
-      throw new Error(`Could not select option with value: ${value}`);
+
+    const fallbackOption = this.page.getByRole('option', { name: value, exact: true }).first();
+    try {
+      await fallbackOption.waitFor({ state: 'visible', timeout: 5000 });
+      await fallbackOption.click({ force: true, timeout: 5000 });
+      console.log(`Selected ${value} from ${label} via ARIA option click`);
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return;
+    } catch {
+      console.log(`ARIA option click failed`);
     }
+
+    throw new Error(`Could not select option with value: ${value} from ${label} dropdown`);
   }
 
   async selectDialCode(value: string): Promise<void> {
@@ -817,6 +802,52 @@ export class CandidateRegistrationPage {
     candidateType: string;
     shareConsentForm?: boolean;
   }): Promise<void> {
+    console.log('Starting fillAndSubmit...');
+    console.log('filing Applicant Number');
+    await this.fillApplicantNumber(candidateData.applicantNumber);
+    console.log('filing First Name');
+    await this.fillFirstName(candidateData.firstName);
+    console.log('filing Last Name');
+    await this.fillLastName(candidateData.lastName);
+    console.log('filing Personal Email');
+    await this.fillPersonalEmail(candidateData.personalEmail);
+    console.log('selecting Dial Code');
+    await this.selectDialCode(candidateData.dialCode);
+    console.log('filing Mobile Number');
+    await this.fillMobileNumber(candidateData.mobileNumber);
+    console.log('selecting Country');
+    await this.selectCountry(candidateData.country);
+    console.log('selecting Hiring Position');
+    await this.selectHiringPosition(candidateData.hiringPosition);
+    console.log('selecting Joining Date');
+    await this.selectJoiningDate(candidateData.joiningDate);
+    console.log('selecting Employee Type');
+    await this.selectEmployeeType(candidateData.employeeType);
+    console.log('selecting Candidate Type');
+    await this.selectCandidateType(candidateData.candidateType);
+    console.log('toggling Share Consent');
+    await this.toggleShareConsent(candidateData.shareConsentForm ?? false);
+    console.log('Re-filling Joining Date (may be cleared by Share Consent toggle)');
+    await this.selectJoiningDate(candidateData.joiningDate);
+    console.log('Clicking Request Documents');
+    await this.clickRequestDocuments();
+    console.log('clickRequestDocuments completed');
+  }
+
+  async fillCandidateFormFields(candidateData: {
+    applicantNumber: string;
+    firstName: string;
+    lastName: string;
+    personalEmail: string;
+    dialCode: string;
+    mobileNumber: string;
+    country: string;
+    hiringPosition: string;
+    joiningDate: string;
+    employeeType: string;
+    candidateType: string;
+    shareConsentForm?: boolean;
+  }): Promise<void> {
     await this.fillApplicantNumber(candidateData.applicantNumber);
     await this.fillFirstName(candidateData.firstName);
     await this.fillLastName(candidateData.lastName);
@@ -833,7 +864,7 @@ export class CandidateRegistrationPage {
       await this.toggleShareConsent(true);
     }
 
-    await this.clickRequestDocuments();
+    await this.selectJoiningDate(candidateData.joiningDate);
   }
 
   // ===== Verification =====
