@@ -23,7 +23,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   /* Opt out of parallel tests on CI */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : 2,
 
   /* Reporter configuration */
   reporter: [
@@ -45,7 +45,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
 
-    /* Timeout settings */
+  /* Timeout settings */
+    timeout: 60000,
     actionTimeout: 30000,
     navigationTimeout: 60000,
   },

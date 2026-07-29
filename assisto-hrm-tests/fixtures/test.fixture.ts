@@ -18,6 +18,7 @@ import { CandidatePreOnboardingPage } from '@pages/CandidatePreOnboardingPage';
 import { CandidatePreOnboardingKeywords } from '@keywords/CandidatePreOnboardingKeywords';
 import { YopMailPage } from '@pages/YopMailPage';
 import { YopMailKeywords } from '@keywords/YopMailKeywords';
+import { MailSacClient } from '@utils/MailSacClient';
 
 /**
  * Extended test fixture with dependency injection
@@ -51,6 +52,7 @@ export const test = base.extend<{
   candidatePreOnboardingKeywords: CandidatePreOnboardingKeywords;
   yopMailPage: YopMailPage;
   yopMailKeywords: YopMailKeywords;
+  mailSacClient: MailSacClient;
 }>({
   loginPage: async ({ page }, use) => {
     const loginPage = new LoginPage(page);
@@ -145,6 +147,11 @@ export const test = base.extend<{
   yopMailKeywords: async ({ page }, use) => {
     const yopMailKeywords = new YopMailKeywords(page);
     await use(yopMailKeywords);
+  },
+
+  mailSacClient: async ({}, use) => {
+    const mailSacClient = new MailSacClient(process.env.MAIL_SAC_API_KEY || '');
+    await use(mailSacClient);
   },
 });
 
