@@ -22,9 +22,20 @@ dist/
 .vscode/
 .idea/
 
+# Reports (build artifacts)
+reports/
+
+# IDE
+.vscode/
+.idea/
+.roo/
+
 # OS files
 .DS_Store
 Thumbs.db
 
 # Logs
 *.log
+
+# Accidental files
+$null
