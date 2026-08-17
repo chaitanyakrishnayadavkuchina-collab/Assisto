@@ -1,0 +1,203 @@
+{
+  "validCandidateData": {
+    "applicantNumber": "202600001",
+    "firstName": "Rajesh",
+    "lastName": "Kumar",
+    "personalEmail": "rajesh.kumar@test.com",
+    "dialCode": "India (+91)",
+    "mobileNumber": "9876543210",
+    "country": "India",
+    "hiringPosition": "Software engineer",
+    "joiningDate": "15-07-2026",
+    "employeeType": "Full Time",
+    "candidateType": "Experienced",
+    "shareConsentForm": false
+  },
+  "validCandidateDataWithConsent": {
+    "applicantNumber": "202600002",
+    "firstName": "Priya",
+    "lastName": "Sharma",
+    "personalEmail": "priya.sharma@test.com",
+    "dialCode": "India (+91)",
+    "mobileNumber": "9876543211",
+    "country": "India",
+    "hiringPosition": "Account Executive",
+    "joiningDate": "20-07-2026",
+    "employeeType": "Full Time",
+    "candidateType": "Fresher",
+    "shareConsentForm": true
+  },
+  "duplicateApplicantNumber": {
+    "applicantNumber": "202600001",
+    "firstName": "Duplicate",
+    "lastName": "Candidate",
+    "personalEmail": "duplicate.candidate@test.com",
+    "dialCode": "India (+91)",
+    "mobileNumber": "9876543212",
+    "country": "India",
+    "hiringPosition": "Sales Executive",
+    "joiningDate": "15-08-2026",
+    "employeeType": "Full Time",
+    "candidateType": "Experienced"
+  },
+  "invalidEmailFormats": [
+    {
+      "personalEmail": "not-an-email",
+      "description": "Invalid email without @ symbol"
+    },
+    {
+      "personalEmail": "missing@domain",
+      "description": "Invalid email without domain TLD"
+    },
+    {
+      "personalEmail": "@nodomain.com",
+      "description": "Invalid email without username"
+    },
+    {
+      "personalEmail": "",
+      "description": "Empty email field"
+    },
+    {
+      "personalEmail": "spaces in email.com",
+      "description": "Email with spaces"
+    }
+  ],
+  "invalidMobileNumbers": [
+    {
+      "mobileNumber": "123",
+      "description": "Too short mobile number"
+    },
+    {
+      "mobileNumber": "abcdefghij",
+      "description": "Non-numeric mobile number"
+    },
+    {
+      "mobileNumber": "",
+      "description": "Empty mobile number"
+    }
+  ],
+  "invalidApplicantNumbers": [
+    {
+      "applicantNumber": "",
+      "description": "Empty applicant number"
+    },
+    {
+      "applicantNumber": "   ",
+      "description": "Whitespace-only applicant number"
+    }
+  ],
+  "invalidJoiningDates": [
+    {
+      "joiningDate": "2020-01-01",
+      "description": "Date in the past"
+    },
+    {
+      "joiningDate": "",
+      "description": "Empty joining date"
+    }
+  ],
+  "employeeTypes": ["Full Time", "FTE", "Freelancer", "Confirmed", "Freelancer 1", "PREFIXDG", "leave"],
+  "candidateTypes": ["Fresher", "Experienced"],
+  "hiringPositions": ["Software engineer", "Sales Executive", "Account Executive", "UIUX Designer", "Motion Graphic Designer", "Account Manager", "HR Executive"],
+  "dialCodes": ["India (+91)", "United States (+1)", "United Kingdom (+44)", "Australia (+61)", "Canada (+1)"],
+  "countries": ["India", "United States", "United Kingdom", "Australia", "Canada"],
+  "filterFields": ["First Name", "Last Name", "Candidate Type", "Applicant Number", "Date of Request", "Personal Mail id", "Hiring For"],
+  "columnFields": ["Candidate", "Hiring Position", "Joining Date", "Stage", "Document Status", "Offer Letter", "Actions"],
+  "xssPayloads": [
+    {
+      "field": "firstName",
+      "value": "<script>alert('xss')</script>",
+      "description": "Script injection in First Name"
+    },
+    {
+      "field": "firstName",
+      "value": "\"/><img src=x onerror=alert(1)>",
+      "description": "HTML img injection in First Name"
+    },
+    {
+      "field": "lastName",
+      "value": "'; DROP TABLE candidates;--",
+      "description": "SQL injection in Last Name"
+    },
+    {
+      "field": "applicantNumber",
+      "value": "'; EXEC xp_cmdshell('dir');--",
+      "description": "SQL injection in Applicant Number"
+    },
+    {
+      "field": "personalEmail",
+      "value": "test<script>alert(document.cookie)</script>@test.com",
+      "description": "XSS in Personal Email"
+    }
+  ],
+  "performanceTestCases": {
+    "concurrentRegistrations": 5,
+    "bulkData": [
+      {
+        "applicantNumber": "BULK001",
+        "firstName": "BulkCandidate1",
+        "lastName": "Test1",
+        "personalEmail": "bulk1@test.com",
+        "dialCode": "India (+91)",
+        "mobileNumber": "9876543201",
+        "country": "India",
+        "hiringPosition": "Software engineer",
+        "joiningDate": "2026-08-01",
+        "employeeType": "Full Time",
+        "candidateType": "Fresher"
+      },
+      {
+        "applicantNumber": "BULK002",
+        "firstName": "BulkCandidate2",
+        "lastName": "Test2",
+        "personalEmail": "bulk2@test.com",
+        "dialCode": "India (+91)",
+        "mobileNumber": "9876543202",
+        "country": "India",
+        "hiringPosition": "Account Executive",
+        "joiningDate": "2026-08-02",
+        "employeeType": "Full Time",
+        "candidateType": "Experienced"
+      },
+      {
+        "applicantNumber": "BULK003",
+        "firstName": "BulkCandidate3",
+        "lastName": "Test3",
+        "personalEmail": "bulk3@test.com",
+        "dialCode": "India (+91)",
+        "mobileNumber": "9876543203",
+        "country": "India",
+        "hiringPosition": "UIUX Designer",
+        "joiningDate": "2026-08-03",
+        "employeeType": "Freelancer",
+        "candidateType": "Fresher"
+      },
+      {
+        "applicantNumber": "BULK004",
+        "firstName": "BulkCandidate4",
+        "lastName": "Test4",
+        "personalEmail": "bulk4@test.com",
+        "dialCode": "India (+91)",
+        "mobileNumber": "9876543204",
+        "country": "India",
+        "hiringPosition": "HR Executive",
+        "joiningDate": "2026-08-04",
+        "employeeType": "FTE",
+        "candidateType": "Experienced"
+      },
+      {
+        "applicantNumber": "BULK005",
+        "firstName": "BulkCandidate5",
+        "lastName": "Test5",
+        "personalEmail": "bulk5@test.com",
+        "dialCode": "India (+91)",
+        "mobileNumber": "9876543205",
+        "country": "India",
+        "hiringPosition": "Sales Executive",
+        "joiningDate": "2026-08-05",
+        "employeeType": "Full Time",
+        "candidateType": "Fresher"
+      }
+    ]
+  }
+}

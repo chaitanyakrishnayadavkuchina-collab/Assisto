@@ -1,0 +1,1 @@
+﻿This is a plain text file being used to test that the document upload rejects non-image file types for Aadhaar/PAN/Passport/Education uploads.

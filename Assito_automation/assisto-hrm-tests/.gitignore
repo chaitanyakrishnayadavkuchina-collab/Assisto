@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Allure
+/allure-report/
+/allure-results/
+
+# Environment
+.env
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Reports (build artifacts)
+reports/
+
+# IDE
+.vscode/
+.idea/
+.roo/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Accidental files
+$null
+
+# Downloaded artifacts from content-verification specs (PDFs saved for
+# pdf-parse assertions) — should never be committed.
+test-data/_offerLetterDownloads/

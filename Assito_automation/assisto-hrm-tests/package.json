@@ -1,0 +1,39 @@
+{
+  "name": "assisto-hrm-tests",
+  "version": "1.0.0",
+  "description": "Playwright + TypeScript test automation framework for Assisto HRM portal",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:report": "playwright show-report",
+    "test:allure": "allure generate allure-results --clean -o allure-report && allure open allure-report",
+    "tsc": "tsc --noEmit",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write '**/*.{ts,json}'"
+  },
+  "keywords": [
+    "playwright",
+    "typescript",
+    "testing",
+    "automation",
+    "hrm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.0.1",
+    "@types/pdf-parse": "^1.1.5",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "allure-playwright": "^3.2.0",
+    "dotenv": "^16.5.0",
+    "eslint": "^9.31.0",
+    "pdf-parse": "^1.1.1",
+    "prettier": "^3.6.0",
+    "typescript": "^5.9.0"
+  }
+}

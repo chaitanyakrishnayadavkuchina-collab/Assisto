@@ -1,0 +1,22 @@
+{
+  "validBusinessUnit": {
+    "name": "Engineering",
+    "code": "ENG-001",
+    "unitHead": "ManojKumar"
+  },
+  "validBusinessUnit2": {
+    "name": "Marketing",
+    "code": "MKT-001",
+    "unitHead": "Kalyanachari S"
+  },
+  "invalidBusinessUnit": {
+    "name": "",
+    "code": "",
+    "unitHead": ""
+  },
+  "duplicateBusinessUnit": {
+    "name": "Engineering",
+    "code": "ENG-001",
+    "unitHead": "ManojKumar"
+  }
+}

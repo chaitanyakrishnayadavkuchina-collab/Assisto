@@ -1,0 +1,48 @@
+{
+  "validUser": {
+    "email": "orgnization1@sharklasers.com",
+    "password": "Welcome@123"
+  },
+  "invalidUser": {
+    "email": "wrong@example.com",
+    "password": "WrongPass123!"
+  },
+  "emptyFields": {
+    "email": "",
+    "password": ""
+  },
+  "partialFields": {
+    "email": "test@example.com",
+    "password": ""
+  },
+  "forgotPasswordEmail": "orgnization1@sharklasers.com",
+  "newPassword": {
+    "newPassword": "Welcome@456",
+    "confirmPassword": "Welcome@456"
+  },
+  "mismatchedPasswords": {
+    "newPassword": "Welcome@456",
+    "confirmPassword": "Welcome@789"
+  },
+  "trialPortal": {
+    "invalidUsername": "wczgdfdqsd3643re^%&^52asfy",
+    "malformedUsername": "dfhrufrehfuirheui@hh",
+    "invalidPassword": "sdfiuwr74ryruh4u",
+    "nonRegisteredUsername": "efhjergfjeg@jfefu.com",
+    "nonRegisteredPassword": "vfheg343gceff34@f4r"
+  },
+  "roles": {
+    "businessHR": {
+      "email": "demosaikiran@yopmail.com",
+      "password": "Welcome@123"
+    },
+    "chro": {
+      "email": "chro@yopmail.com",
+      "password": "Welcome@123"
+    },
+    "hrManager": {
+      "email": "kalyan001@yopmail.com",
+      "password": "Welcome@123"
+    }
+  }
+}
