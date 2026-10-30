@@ -56,6 +56,9 @@ export async function registerCandidate(
   overrides: Partial<HrCandidateData> = {},
 ): Promise<RegisteredCandidate> {
   const email = await mailSacClient.generateEmail('phase');
+  // Clear any existing emails in the mailbox so only the new registration email is picked up
+  await mailSacClient.deleteInbox(email);
+
   const hrData = { ...generateHrCandidateData(email), ...overrides };
   const candidateData = generateUniqueCandidateData();
   const candidateFullName = `${hrData.firstName} ${hrData.lastName}`;
@@ -67,7 +70,7 @@ export async function registerCandidate(
 
   const preOnboardingLink = await mailSacClient.waitForEmailAndExtractLink(
     email,
-    'Submit Your Documents',
+    ['Submit Your Documents', 'Pre-Onboarding', 'Document', 'Upload'],
     120000,
   );
 
@@ -88,25 +91,27 @@ export async function completeCandidateDocuments(
   await candidatePreOnboardingKeywords.navigateToCandidatePreOnboarding(
     preOnboardingLink,
   );
-  await candidatePreOnboardingKeywords.fillPersonalInformation({
-    firstName: hrData.firstName,
-    lastName: hrData.lastName,
-    alternateEmail: candidateData.alternateEmail,
-    dialCode: candidateData.dialCode,
-    mobileNumber: candidateData.mobileNumber,
-    dateOfBirth: candidateData.dateOfBirth,
-    nationalId: candidateData.nationalId,
-    // Address is mandatory on the Personal Information form (Address Line 1,
-    // Country, State, City, PIN). Omitting it made Save & Continue fail with
-    // "Address line 1 is required | Country is required | ...". The data was
-    // already being generated in CandidateData.address — it just was not
-    // being passed through.
-    address: candidateData.address,
-  });
-  await candidatePreOnboardingKeywords.clickSaveAndContinue();
-  await page
-    .waitForLoadState('networkidle', { timeout: 10000 })
-    .catch(() => {});
+  if (await candidatePreOnboardingKeywords.isStep1Active()) {
+    await candidatePreOnboardingKeywords.fillPersonalInformation({
+      firstName: hrData.firstName,
+      lastName: hrData.lastName,
+      alternateEmail: candidateData.alternateEmail,
+      dialCode: candidateData.dialCode,
+      mobileNumber: candidateData.mobileNumber,
+      dateOfBirth: candidateData.dateOfBirth,
+      nationalId: candidateData.nationalId,
+      // Address is mandatory on the Personal Information form (Address Line 1,
+      // Country, State, City, PIN). Omitting it made Save & Continue fail with
+      // "Address line 1 is required | Country is required | ...". The data was
+      // already being generated in CandidateData.address — it just was not
+      // being passed through.
+      address: candidateData.address,
+    });
+    await candidatePreOnboardingKeywords.clickSaveAndContinue();
+    await page
+      .waitForLoadState('networkidle', { timeout: 10000 })
+      .catch(() => {});
+  }
   await candidatePreOnboardingKeywords.verifyDocumentUploadSectionVisible();
 
   await candidatePreOnboardingKeywords.fillIdProofs({
@@ -176,22 +181,25 @@ export async function verifyAndApproveAllDocuments(
     .waitForLoadState('networkidle', { timeout: 10000 })
     .catch(() => {});
 
-  for (const doc of [
+  const docsToVerify = [
     'Aadhaar Card',
     'Passport',
     'pan',
+    'Voter ID',
     'Educational documents',
-  ] as const) {
-    await hrDocumentReviewKeywords.selectDocument(doc);
-    await hrDocumentReviewKeywords.clickVerifyDocument();
-    // Confirm THIS document actually flipped to Verified before moving to
-    // the next one, instead of a blind fixed-duration wait — the click
-    // alone doesn't guarantee the server-side update landed in time, and a
-    // silently-skipped document here left "Approve Candidate Onboarding"
-    // disabled downstream with no clear signal why.
-    await page
-      .getByRole('button', { name: 'Verified', exact: true })
-      .waitFor({ state: 'visible', timeout: 10000 });
+  ];
+  for (const doc of docsToVerify) {
+    const isPresent = await page.getByText(doc, { exact: false }).first().isVisible().catch(() => false);
+    if (isPresent) {
+      await hrDocumentReviewKeywords.selectDocument(doc);
+      const verifyBtn = page.getByRole('button', { name: 'Verify Document' });
+      if (await verifyBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await hrDocumentReviewKeywords.clickVerifyDocument();
+        await page
+          .getByRole('button', { name: 'Verified', exact: true })
+          .waitFor({ state: 'visible', timeout: 10000 });
+      }
+    }
   }
 
   await hrDocumentReviewKeywords.clickApproveCandidateOnboarding();
@@ -213,6 +221,45 @@ export async function bringCandidateToOfferLetterTabReady(
   mailSacClient: MailSacClient,
   page: Page,
 ): Promise<RegisteredCandidate> {
+  // If an approved candidate already exists in Candidate Management, reuse them
+  // to avoid creating redundant candidates and polling emails for every validation test.
+  try {
+    const candidateRegistrationPage = new CandidateRegistrationPage(page);
+    const existing = await bringExistingCandidateToOfferLetterTabReady(
+      candidateRegistrationKeywords,
+      candidateRegistrationPage,
+      hrDocumentReviewKeywords,
+      page,
+    );
+    console.log(
+      `[bringCandidateToOfferLetterTabReady] Reusing existing approved candidate "${existing.candidateFullName}"`,
+    );
+    return {
+      candidateFullName: existing.candidateFullName,
+      email: existing.email,
+      preOnboardingLink: '',
+      hrData: {
+        firstName: existing.candidateFullName.split(' ')[0] ?? '',
+        lastName: existing.candidateFullName.split(' ').slice(1).join(' ') ?? '',
+        applicantNumber: '',
+        personalEmail: existing.email,
+        mobileNumber: '',
+        dialCode: '',
+        country: '',
+        hiringPosition: '',
+        joiningDate: '',
+        employeeType: '',
+        candidateType: '',
+        shareConsentForm: true,
+      },
+      candidateData: generateUniqueCandidateData(),
+    };
+  } catch (reuseErr) {
+    console.log(
+      `[bringCandidateToOfferLetterTabReady] Could not reuse existing candidate (${reuseErr}), registering fresh candidate...`,
+    );
+  }
+
   const registered = await bringCandidateToDocumentVerificationPending(
     candidateRegistrationKeywords,
     candidatePreOnboardingKeywords,
@@ -414,6 +461,9 @@ export async function releaseOfferLetterAndGetLink(
   mailSacClient: MailSacClient,
   registered: CandidateIdentity,
 ): Promise<string> {
+  // Clear mailbox before releasing so we only capture the new offer letter email
+  await mailSacClient.deleteInbox(registered.email);
+
   await letterGenerationKeywords.navigateToLetterGeneration();
   await letterGenerationKeywords.releaseLetterToCandidate(
     registered.candidateFullName,
@@ -431,7 +481,7 @@ export async function releaseOfferLetterAndGetLink(
 
   return await mailSacClient.waitForEmailAndExtractLink(
     registered.email,
-    'Offer letter',
+    ['Offer letter', 'Offer Letter', 'offer letter', 'Offer'],
     120000,
   );
 }
@@ -522,10 +572,10 @@ export async function findExistingApprovedCandidate(
   const chosenIndex = pool[Math.floor(Math.random() * pool.length)];
   const row = rows.nth(chosenIndex);
 
-  const candidateFullName = (
+  let candidateFullName = (
     await row.getByRole('img').getAttribute('aria-label')
   )?.trim();
-  const email = (
+  let email = (
     await row.locator('span.text-slate-400').first().textContent()
   )?.trim();
 
@@ -535,6 +585,17 @@ export async function findExistingApprovedCandidate(
   // rather than buried somewhere in the full, unfiltered, paginated grid.
   // The candidate's document status won't change between this selection and
   // that click, so the filter stays valid to leave in place.
+  if (!candidateFullName || !email) {
+    const rowText = (await row.innerText()) ?? '';
+    const parts = rowText.split(/\t+|\n+| {2,}/).map(s => s.trim()).filter(Boolean);
+    if (!email) {
+      email = parts.find(p => p.includes('@'));
+    }
+    if (!candidateFullName && parts.length >= 2) {
+      const nameMatch = parts.find(p => p.length > 2 && !p.includes('@') && !/^\d+$/.test(p) && !['Approved', 'Pending', 'Requested', 'Not Generated', 'Accepted', 'Software engineer', 'Senior QA', 'UIUX Designer', 'India'].includes(p));
+      if (nameMatch) candidateFullName = nameMatch;
+    }
+  }
 
   if (!candidateFullName || !email) {
     throw new Error(

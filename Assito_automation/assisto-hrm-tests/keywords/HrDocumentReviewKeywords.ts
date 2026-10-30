@@ -66,7 +66,7 @@ export class HrDocumentReviewKeywords {
   //  DOCUMENT SELECTION
   // ==========================================
 
-  async selectDocument(name: 'Aadhaar Card' | 'Passport' | 'pan' | 'Educational documents'): Promise<void> {
+  async selectDocument(name: string): Promise<void> {
     await this.reviewPage.selectDocument(name);
   }
 

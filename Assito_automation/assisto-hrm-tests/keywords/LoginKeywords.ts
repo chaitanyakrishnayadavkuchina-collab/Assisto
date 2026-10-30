@@ -39,6 +39,7 @@ export class LoginKeywords {
    * Perform a login with the given credentials
    */
   async login(email: string, password: string): Promise<void> {
+    await expect(this.loginPage.getEmailField()).toBeEditable({ timeout: 30000 });
     await this.loginPage.fillEmail(email);
     await this.loginPage.fillPassword(password);
     await this.loginPage.clickLoginButton();

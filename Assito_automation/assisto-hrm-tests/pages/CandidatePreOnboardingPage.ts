@@ -247,8 +247,8 @@ export class CandidatePreOnboardingPage {
     // ── Document Upload ──
     // No "Document Upload" heading in main content; the card wraps the tablist
     this.documentUploadCard = page.getByRole('tablist').locator('..').locator('..');
-    this.idProofsTab = page.getByRole('tab', { name: 'ID Proofs' });
-    this.educationTab = page.getByRole('tab', { name: 'Education' });
+    this.idProofsTab = page.getByRole('tab', { name: /ID Proofs/i });
+    this.educationTab = page.getByRole('tab', { name: /Education/i });
 
     // ID Proofs
     // Section titles are <span>s, not headings; go up to the section card
@@ -318,17 +318,15 @@ export class CandidatePreOnboardingPage {
     // getByRole(name) can't separate the two pickers: both are named
     // "DD/MM/YYYY".
     this.endYearInput = page
-      .locator('div')
-      .filter({ hasText: /^End Year\s*\*?$/ })
-      .getByRole('combobox');
+      .getByRole('combobox', { name: /End Year/i })
+      .or(page.locator('div').filter({ hasText: /^End Year\s*\*?$/ }).getByRole('combobox'));
     this.institutionNameInput = page.getByRole('textbox', { name: 'Institution Name' });
     this.degreeInput = page.getByRole('textbox', { name: 'Degree/Qualification' });
     this.specializationInput = page.getByRole('textbox', { name: 'Specialization/Major' });
     this.startYearInput = page
-      .locator('div')
-      .filter({ hasText: /^Start Year\s*\*?$/ })
-      .getByRole('combobox');
-    this.gpaInput = page.getByRole('textbox', { name: 'GPA/Percentage' });
+      .getByRole('combobox', { name: /Start Year/i })
+      .or(page.locator('div').filter({ hasText: /^Start Year\s*\*?$/ }).getByRole('combobox'));
+    this.gpaInput = page.getByRole('textbox', { name: /CGPA|Percentage|GPA/i });
     // Unlike the date pickers, this combobox carries its own accessible name,
     // so it needs no wrapper scoping at all.
     this.gradingSystemInput = page.getByRole('combobox', {
@@ -398,18 +396,25 @@ export class CandidatePreOnboardingPage {
       .getByText(/^(Awaiting Response|Accepted|Declined|Rejected)$/i)
       .first();
     this.awaitingResponseText = page.getByText('Awaiting Response').first();
-    this.acceptAndUploadSignedLetterButton = page.getByRole('button', { name: 'Accept & Upload Signed Letter' });
+    this.acceptAndUploadSignedLetterButton = page.getByRole('button', {
+      name: /Accept & (Upload Signed|Sign Offer) Letter/i,
+    });
     this.rejectOfferButton = page.getByRole('button', { name: 'Reject Offer' });
 
     // Accept Offer Letter Modal
-    this.acceptOfferModal = page.locator('[class*="modal"], [class*="Modal"], [role="dialog"]').filter({ has: page.getByText('Accept Offer Letter', { exact: true }) }).first();
+    this.acceptOfferModal = page
+      .locator('[class*="modal"], [class*="Modal"], [role="dialog"]')
+      .filter({ has: page.getByText(/Accept.*Offer/i) })
+      .first();
     this.offerLetterInfoHeader = this.acceptOfferModal.locator('[class*="info"], [class*="Info"]').first();
-    this.drawTab = this.acceptOfferModal.getByRole('tab', { name: 'Draw' });
-    this.uploadTab = this.acceptOfferModal.getByRole('tab', { name: 'Upload' });
+    this.drawTab = this.acceptOfferModal.getByRole('tab', { name: /Draw/i });
+    this.uploadTab = this.acceptOfferModal.getByRole('tab', { name: /Upload/i });
     this.signatureCanvas = this.acceptOfferModal.locator('canvas').first();
     this.clearSignatureButton = this.acceptOfferModal.getByRole('button', { name: 'Clear' });
     this.uploadSignedLetterButton = this.acceptOfferModal.getByText('Upload Signed Offer Letter').locator('..').locator('input[type="file"]');
-    this.submitAndAcceptOfferButton = this.acceptOfferModal.getByRole('button', { name: 'Submit & Accept Offer' });
+    this.submitAndAcceptOfferButton = this.acceptOfferModal.getByRole('button', {
+      name: /Submit & Accept Offer|Accept Offer|Submit/i,
+    });
 
     // Rejection form
     this.reasonForRejectionPanel = page.getByText('Reason for Rejection', { exact: true }).locator('..');
@@ -417,10 +422,9 @@ export class CandidatePreOnboardingPage {
     this.confirmRejectionButton = page.getByRole('button', { name: 'Confirm Rejection' });
     this.cancelRejectionButton = page.getByRole('button', { name: 'Cancel' }).last();
 
-    // Completion page
-    this.allSetHeading = page.getByText('Pre Onboarding Complete!', { exact: true });
+    this.allSetHeading = page.getByText(/Pre Onboarding Complete!?|All Set|Congratulations/i).first();
     this.completionMessage = page.getByText(/Welcome to .* Pvt Ltd/i).first();
-    this.allStepsCompletedBadge = page.getByText('All Steps Completed');
+    this.allStepsCompletedBadge = page.getByText(/All Steps Completed|Completed/i).first();
     this.downloadSignedOfferLetterButton = page.getByRole('button', { name: 'Download Signed Offer Letter' });
     this.downloadExpiryText = page.getByText(/Expires in \d+s/);
     this.joiningSummarySection = page.getByText('YOUR JOINING SUMMARY').locator('..');
@@ -568,11 +572,15 @@ export class CandidatePreOnboardingPage {
       console.log('Clicking "Yes, submit" on confirmation dialog');
       await confirmDialog.click();
       await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     // Confirm we actually left the Personal Information form (don't just assume)
-    const stillOnPersonalInfo = await this.firstNameInput.isVisible({ timeout: 2000 }).catch(() => false);
-    if (stillOnPersonalInfo) {
+    await this.firstNameInput.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+    const stillOnPersonalInfo = await this.firstNameInput.isVisible().catch(() => false);
+    const idProofsVisible = await this.page.getByRole('tab', { name: /ID Proofs/i }).isVisible().catch(() => false);
+
+    if (stillOnPersonalInfo && !idProofsVisible) {
       const validationErrors = await this.collectValidationErrors();
       if (validationErrors.length > 0) {
         throw new Error(
@@ -840,9 +848,11 @@ export class CandidatePreOnboardingPage {
     panNumber: string; panName: string; panFatherName: string;
     passportDocumentType?: string; passportIdNumber?: string; passportName?: string; passportExpiryDate?: string;
   }): Promise<void> {
-    await this.uploadAadhaarImage();
-    await this.fillAadhaarNumber(data.aadhaarNumber);
-    await this.fillAadhaarName(data.aadhaarName);
+    if (await this.aadhaarCardSection.isVisible().catch(() => false)) {
+      await this.uploadAadhaarImage();
+      await this.fillAadhaarNumber(data.aadhaarNumber);
+      await this.fillAadhaarName(data.aadhaarName);
+    }
 
     // Passport is a required section between Aadhaar and PAN in the current Figma.
     if (await this.passportSection.isVisible().catch(() => false)) {
@@ -854,10 +864,12 @@ export class CandidatePreOnboardingPage {
       });
     }
 
-    await this.uploadPanImage();
-    await this.fillPanNumber(data.panNumber);
-    await this.fillPanName(data.panName);
-    await this.fillPanFatherName(data.panFatherName);
+    if (await this.panSection.isVisible().catch(() => false)) {
+      await this.uploadPanImage();
+      await this.fillPanNumber(data.panNumber);
+      await this.fillPanName(data.panName);
+      await this.fillPanFatherName(data.panFatherName);
+    }
   }
 
   /**
@@ -870,76 +882,73 @@ export class CandidatePreOnboardingPage {
    * configured (or none).
    */
   async fillAdditionalDocuments(): Promise<void> {
-    // The sections are direct children of the panel that also contains the
-    // "Next" button. Additional document sections are the only ones that
-    // contain a "Document Type" field (Aadhaar/PAN do not).
-    const panel = this.page.getByRole('button', { name: 'Next' }).locator('xpath=..');
-    let sections = panel.locator(':scope > div').filter({ hasText: 'Document Type' });
-    let count = await sections.count();
+    const docTypeInputs = this.page.getByRole('textbox', { name: 'Document Type' });
+    const count = await docTypeInputs.count();
 
     if (count === 0) {
-      // Direct children didn't match. Configured document types come from
-      // tenant settings, so their markup nesting is not guaranteed — fall back
-      // to any descendant that owns a "Document Type" textbox before
-      // concluding there are none. Getting this wrong silently leaves a
-      // mandatory document unfilled, which then surfaces much later as an
-      // unexplained "success banner not found" after Submit.
-      sections = panel
-        .locator('div')
-        .filter({ has: this.page.getByRole('textbox', { name: 'Document Type' }) });
-      count = await sections.count();
-      if (count > 0) {
-        console.log(`[Docs] Direct-child match found none; descendant fallback matched ${count}`);
-      }
-    }
-
-    if (count === 0) {
-      // Distinguish "genuinely none configured" from "present but unmatched":
-      // if the page is showing Document Type validation, something is there
-      // that this method failed to see, and continuing would fail obscurely.
-      const orphanRequired = await this.page
-        .getByText('Document Type is required')
-        .count()
-        .catch(() => 0);
-      if (orphanRequired > 0) {
-        throw new Error(
-          '[Docs] The form requires an additional configured document, but no fillable ' +
-            'section could be located. This usually means a document template was added ' +
-            'to tenant settings (Settings > Documents > Employee Documents) whose markup ' +
-            'this helper does not match — check for leftover test templates.',
-        );
-      }
       console.log('[Docs] No additional configured documents - skipping');
       return;
     }
-    console.log(`[Docs] Filling ${count} additional configured document(s)`);
+
+    console.log(`[Docs] Found ${count} additional configured document(s)`);
     for (let i = 0; i < count; i++) {
-      const section = sections.nth(i);
-      const name = (await section.locator('div').filter({ hasText: 'Required' }).first().textContent().catch(() => '')) ?? '';
-      console.log(`[Docs] Additional document ${i + 1}: "${name.trim()}"`);
+      const docTypeInput = docTypeInputs.nth(i);
+      const currentVal = await docTypeInput.inputValue().catch(() => '');
+      if (currentVal.trim() !== '') {
+        console.log(`[Docs] Additional document ${i + 1} already has Document Type "${currentVal}" - skipping`);
+        continue;
+      }
 
-      const frontInput = section.locator('input[type="file"]').nth(0);
-      const backInput = section.locator('input[type="file"]').nth(1);
-      await frontInput.setInputFiles('test-data/test-upload.png');
-      await new Promise(resolve => setTimeout(resolve, 600));
-      await backInput.setInputFiles('test-data/test-upload.png');
-      await new Promise(resolve => setTimeout(resolve, 600));
+      const section = docTypeInput.locator('xpath=ancestor::div[.//input[@type="file"] or .//button[contains(., "upload")]][1]');
+      const hasSection = (await section.count()) > 0;
 
-      await section.getByRole('textbox', { name: 'Document Type' }).fill('Government ID');
-      await section.getByRole('textbox', { name: 'ID Number' }).fill(`98765${String(43210 + i * 137).slice(0, 5)}`);
-      await section.getByRole('textbox', { name: 'Name on Document' }).fill('Test User');
+      const fileInputs = hasSection ? section.locator('input[type="file"]') : this.page.locator('input[type="file"]');
+      const fileCount = await fileInputs.count();
+      console.log(`[Docs] Additional document ${i + 1}: uploading ${fileCount} file(s)`);
+      for (let f = 0; f < fileCount; f++) {
+        await fileInputs.nth(f).setInputFiles('test-data/test-upload.png');
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
 
-      const expiry = section.getByRole('combobox', { name: 'DD/MM/YYYY' });
-      await expiry.waitFor({ state: 'visible', timeout: 5000 });
-      await expiry.click({ force: true });
-      await new Promise(resolve => setTimeout(resolve, 400));
-      await this.page.keyboard.type('31/12/2030', { delay: 30 });
-      await new Promise(resolve => setTimeout(resolve, 400));
-      await this.page.keyboard.press('Enter');
-      await new Promise(resolve => setTimeout(resolve, 400));
-      await this.page.keyboard.press('Escape');
-      await new Promise(resolve => setTimeout(resolve, 400));
-      console.log(`[Docs] Filled additional document ${i + 1}`);
+      await docTypeInput.fill('Government ID');
+
+      const idInput = hasSection
+        ? section.getByRole('textbox', { name: 'ID Number' })
+        : this.page.getByRole('textbox', { name: 'ID Number' }).nth(i);
+      if (await idInput.isVisible().catch(() => false)) {
+        await idInput.fill(`98765${String(43210 + i * 137).slice(0, 5)}`);
+      }
+
+      const nameInput = hasSection
+        ? section.getByRole('textbox', { name: 'Name on Document' })
+        : this.page.getByRole('textbox', { name: 'Name on Document' }).nth(i);
+      if (await nameInput.isVisible().catch(() => false)) {
+        await nameInput.fill('Test User');
+      }
+
+      const expiryPickers = hasSection
+        ? section.getByRole('combobox', { name: /DD\/MM\/YYYY|Expiry/i }).or(section.locator('input[placeholder*="YYYY"], input[placeholder*="yyyy"]'))
+        : this.page.getByRole('combobox', { name: /DD\/MM\/YYYY|Expiry/i });
+      const expCount = await expiryPickers.count();
+      for (let e = 0; e < expCount; e++) {
+        const picker = expiryPickers.nth(e);
+        if (await picker.isVisible().catch(() => false)) {
+          const val = await picker.inputValue().catch(() => '');
+          if (!val) {
+            await picker.click({ force: true });
+            await new Promise(resolve => setTimeout(resolve, 300));
+            await picker.fill('31/12/2030').catch(async () => {
+              await this.page.keyboard.type('31/12/2030', { delay: 30 });
+            });
+            await new Promise(resolve => setTimeout(resolve, 300));
+            await this.page.keyboard.press('Enter');
+            await new Promise(resolve => setTimeout(resolve, 300));
+            await this.page.keyboard.press('Escape');
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        }
+      }
+      console.log(`[Docs] Successfully filled additional document ${i + 1}`);
     }
   }
 

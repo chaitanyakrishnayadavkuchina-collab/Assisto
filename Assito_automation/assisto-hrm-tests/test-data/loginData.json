@@ -43,6 +43,10 @@
     "hrManager": {
       "email": "kalyan001@yopmail.com",
       "password": "Welcome@123"
+    },
+    "it": {
+      "email": "sanjay@sharklasers.com",
+      "password": "Welcome@123"
     }
   }
 }

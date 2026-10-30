@@ -137,8 +137,25 @@ export class LoginPage {
       .locator('h1')
       .first()
       .or(page.getByText('Login to your account', { exact: true }).first());
-    this.emailField = page.getByRole('textbox', { name: /email/i }).first();
-    this.passwordField = page.locator('input[type="password"]').first();
+    this.emailField = page
+      .locator('#login-email')
+      .or(page.getByTestId('login-email'))
+      .or(page.getByRole('textbox', { name: /email/i }))
+      .or(
+        page.locator(
+          'input[type="email"], input[name="email"], input[placeholder*="email" i]',
+        ),
+      )
+      .first();
+    this.passwordField = page
+      .locator('#login-password')
+      .or(page.getByTestId('login-password'))
+      .or(
+        page.locator(
+          'input[type="password"], input[name="password"]',
+        ),
+      )
+      .first();
     this.loginButton = page.getByRole('button', { name: 'Login' }).first();
     this.rememberMeCheckbox = page.getByRole('checkbox', {
       name: 'Remember me',
@@ -255,6 +272,7 @@ export class LoginPage {
   /** Navigate to the login page */
   async goto(loginUrl: string): Promise<void> {
     await this.page.goto(loginUrl, { waitUntil: 'domcontentloaded' });
+    await this.emailField.waitFor({ state: 'visible', timeout: 15000 }).catch(() => {});
   }
 
   /** Check if the error message is visible */

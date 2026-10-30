@@ -61,6 +61,14 @@ export class CandidatePreOnboardingKeywords {
   //  STEP INDICATOR VERIFICATIONS
   // ==========================================
 
+  async isStep1Active(): Promise<boolean> {
+    return await this.candidatePage.isStep1Active();
+  }
+
+  async isStep2Active(): Promise<boolean> {
+    return await this.candidatePage.isStep2Active();
+  }
+
   async verifyStep1Active(): Promise<void> {
     await expect(this.candidatePage.isStep1Active()).resolves.toBe(true);
   }

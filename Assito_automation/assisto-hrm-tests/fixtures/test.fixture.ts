@@ -24,6 +24,22 @@ import { HrDocumentReviewPage } from '@pages/HrDocumentReviewPage';
 import { HrDocumentReviewKeywords } from '@keywords/HrDocumentReviewKeywords';
 import { LetterGenerationPage } from '@pages/LetterGenerationPage';
 import { LetterGenerationKeywords } from '@keywords/LetterGenerationKeywords';
+// ===== Employee Onboarding (post offer-acceptance) =====
+import { TemporaryRegistrationPage } from '@pages/onboarding/TemporaryRegistrationPage';
+import { TemporaryRegistrationKeywords } from '@keywords/onboarding/TemporaryRegistrationKeywords';
+import { UpcomingJoineePage } from '@pages/onboarding/UpcomingJoineePage';
+import { UpcomingJoineeKeywords } from '@keywords/onboarding/UpcomingJoineeKeywords';
+import { EmployeeIdGenerationPage } from '@pages/onboarding/EmployeeIdGenerationPage';
+import { EmployeeIdGenerationKeywords } from '@keywords/onboarding/EmployeeIdGenerationKeywords';
+import { ItMailProvisioningPage } from '@pages/onboarding/ItMailProvisioningPage';
+import { ItMailProvisioningKeywords } from '@keywords/onboarding/ItMailProvisioningKeywords';
+import { DayZeroCheckInPage } from '@pages/onboarding/DayZeroCheckInPage';
+import { DayZeroCheckInKeywords } from '@keywords/onboarding/DayZeroCheckInKeywords';
+import { SetPasswordPage } from '@pages/onboarding/SetPasswordPage';
+import { SelfOnboardingPage } from '@pages/onboarding/SelfOnboardingPage';
+import { SelfOnboardingKeywords } from '@keywords/onboarding/SelfOnboardingKeywords';
+import { HrVerificationPage } from '@pages/onboarding/HrVerificationPage';
+import { HrVerificationKeywords } from '@keywords/onboarding/HrVerificationKeywords';
 import {
   ensureAuthState,
   sessionStorageInitScript,
@@ -81,6 +97,21 @@ export const test = base.extend<{
   hrDocumentReviewKeywords: HrDocumentReviewKeywords;
   letterGenerationPage: LetterGenerationPage;
   letterGenerationKeywords: LetterGenerationKeywords;
+  temporaryRegistrationPage: TemporaryRegistrationPage;
+  temporaryRegistrationKeywords: TemporaryRegistrationKeywords;
+  upcomingJoineePage: UpcomingJoineePage;
+  upcomingJoineeKeywords: UpcomingJoineeKeywords;
+  employeeIdGenerationPage: EmployeeIdGenerationPage;
+  employeeIdGenerationKeywords: EmployeeIdGenerationKeywords;
+  itMailProvisioningPage: ItMailProvisioningPage;
+  itMailProvisioningKeywords: ItMailProvisioningKeywords;
+  dayZeroCheckInPage: DayZeroCheckInPage;
+  dayZeroCheckInKeywords: DayZeroCheckInKeywords;
+  setPasswordPage: SetPasswordPage;
+  selfOnboardingPage: SelfOnboardingPage;
+  selfOnboardingKeywords: SelfOnboardingKeywords;
+  hrVerificationPage: HrVerificationPage;
+  hrVerificationKeywords: HrVerificationKeywords;
 }>({
   role: ['none', { option: true }],
 
@@ -239,6 +270,66 @@ export const test = base.extend<{
   letterGenerationKeywords: async ({ page }, use) => {
     const letterGenerationKeywords = new LetterGenerationKeywords(page);
     await use(letterGenerationKeywords);
+  },
+
+  temporaryRegistrationPage: async ({ page }, use) => {
+    await use(new TemporaryRegistrationPage(page));
+  },
+
+  temporaryRegistrationKeywords: async ({ page }, use) => {
+    await use(new TemporaryRegistrationKeywords(page));
+  },
+
+  upcomingJoineePage: async ({ page }, use) => {
+    await use(new UpcomingJoineePage(page));
+  },
+
+  upcomingJoineeKeywords: async ({ page }, use) => {
+    await use(new UpcomingJoineeKeywords(page));
+  },
+
+  employeeIdGenerationPage: async ({ page }, use) => {
+    await use(new EmployeeIdGenerationPage(page));
+  },
+
+  employeeIdGenerationKeywords: async ({ page }, use) => {
+    await use(new EmployeeIdGenerationKeywords(page));
+  },
+
+  itMailProvisioningPage: async ({ page }, use) => {
+    await use(new ItMailProvisioningPage(page));
+  },
+
+  itMailProvisioningKeywords: async ({ page }, use) => {
+    await use(new ItMailProvisioningKeywords(page));
+  },
+
+  dayZeroCheckInPage: async ({ page }, use) => {
+    await use(new DayZeroCheckInPage(page));
+  },
+
+  dayZeroCheckInKeywords: async ({ page }, use) => {
+    await use(new DayZeroCheckInKeywords(page));
+  },
+
+  setPasswordPage: async ({ page }, use) => {
+    await use(new SetPasswordPage(page));
+  },
+
+  selfOnboardingPage: async ({ page }, use) => {
+    await use(new SelfOnboardingPage(page));
+  },
+
+  selfOnboardingKeywords: async ({ page }, use) => {
+    await use(new SelfOnboardingKeywords(page));
+  },
+
+  hrVerificationPage: async ({ page }, use) => {
+    await use(new HrVerificationPage(page));
+  },
+
+  hrVerificationKeywords: async ({ page }, use) => {
+    await use(new HrVerificationKeywords(page));
   },
 
   mailSacClient: async ({}, use) => {

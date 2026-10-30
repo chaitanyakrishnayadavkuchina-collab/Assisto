@@ -1,0 +1,53 @@
+{
+  "temporaryRegistration": {
+    "reportingManager": "Murali Krishna",
+    "location": "Bengaluru - BEN-001",
+    "department": "Finance",
+    "employmentType": "Full Time",
+    "virtualOnboarding": "Yes",
+    "laptopRequired": "Yes"
+  },
+  "employeeId": {
+    "formatScope": "Full Time Employees"
+  },
+  "itMailProvisioning": {
+    "orgMailPrefix": "emp",
+    "temporaryPassword": "Welcome@123"
+  },
+  "selfOnboarding": {
+    "joiningEmailSubject": "Joining Confirmed",
+    "identityDocuments": [
+      "Aadhaar Card",
+      "pan",
+      "Passport"
+    ],
+    "agreements": [
+      "Intellectual Assignment Agreement"
+    ],
+    "policies": [
+      "Health"
+    ],
+    "personalProfile": {
+      "placeOfBirth": "Bengaluru",
+      "nationality": "Indian",
+      "religion": "Not disclosed",
+      "residentialStatus": "Resident",
+      "maritalStatus": "Single",
+      "addressLine1": "123 Test Street",
+      "addressLine2": "Test Layout",
+      "city": "Bengaluru",
+      "pinCode": "560001"
+    },
+    "statutory": {
+      "bankName": "Test Bank",
+      "accountNumber": "000123456789",
+      "ifscCode": "TEST0001234",
+      "branch": "Test Branch"
+    },
+    "emergencyContact": {
+      "dialCode": "+91",
+      "contactNumber": "9999000111",
+      "relationship": "Parent"
+    }
+  }
+}

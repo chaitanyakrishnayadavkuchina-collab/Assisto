@@ -14,6 +14,15 @@ export interface SelectComboboxOptions {
   filterText?: string;
   /** Text used to match the option (defaults to value) */
   matchText?: string;
+  /**
+   * Skip the opening Escape keypress.
+   *
+   * The Escape exists to dismiss a stray open dropdown, which is harmless on a
+   * full page. Inside a MODAL it is not: Escape closes the dialog, and the
+   * combobox is detached before it can be clicked. Modal-hosted comboboxes
+   * (e.g. Temporary Registration) must pass this.
+   */
+  skipEscape?: boolean;
 }
 
 /**
@@ -35,16 +44,22 @@ export async function selectComboboxOption(
   value: string,
   options: SelectComboboxOptions = {},
 ): Promise<SelectComboboxResult> {
-  const { noFilter = false, filterText, matchText } = options;
+  const { noFilter = false, filterText, matchText, skipEscape = false } = options;
   const filterInput = filterText ?? value;
   const matchInput = matchText ?? value;
 
-  await page.keyboard.press('Escape');
-  await new Promise(resolve => setTimeout(resolve, 300));
+  if (!skipEscape) {
+    await page.keyboard.press('Escape');
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
 
   await combobox.click({ force: true });
   await new Promise(resolve => setTimeout(resolve, 500));
-  await combobox.fill('');
+  // Not every role="combobox" is editable: Fluent renders some as a BUTTON
+  // (a Dropdown) rather than an <input> (a Combobox), and fill() times out
+  // against those. Clearing is only meaningful when a filter is about to be
+  // typed anyway, so a failure here is not fatal.
+  await combobox.fill('').catch(() => {});
   await new Promise(resolve => setTimeout(resolve, 200));
   if (!noFilter) {
     await page.keyboard.type(filterInput, { delay: 30 });

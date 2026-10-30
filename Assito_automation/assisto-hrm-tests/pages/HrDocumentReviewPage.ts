@@ -323,14 +323,15 @@ export class HrDocumentReviewPage {
     await this.offerLetterTab.click();
   }
 
-  async selectDocument(documentName: 'Aadhaar Card' | 'Passport' | 'pan' | 'Educational documents'): Promise<void> {
+  async selectDocument(documentName: string): Promise<void> {
     const docMap: Record<string, Locator> = {
       'Aadhaar Card': this.aadhaarCardDoc,
       'Passport': this.passportDoc,
       'pan': this.panDoc,
       'Educational documents': this.educationalDocs,
     };
-    await docMap[documentName].click();
+    const target = docMap[documentName] ?? this.page.getByText(documentName, { exact: false }).first();
+    await target.click();
   }
 
   async clickVerifyDocument(): Promise<void> {

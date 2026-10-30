@@ -41,6 +41,7 @@ interface EmailMessage {
   received: string;
   size: number;
   attachments?: string[];
+  links?: string[];
   body?: {
     plain?: string;
     html?: string;
@@ -56,6 +57,7 @@ interface MailSacMessageSummary {
   received?: string;
   size?: number;
   attachments?: string[];
+  links?: string[];
 }
 
 export class MailSacClient {
@@ -76,12 +78,22 @@ export class MailSacClient {
   /**
    * Generate a unique disposable MailSac address.
    * @param prefix - Label embedded in the address (default: 'candidate')
+   * Generate a unique disposable email address.
+   * Uses @yopmail.com by default because Assisto live backend delivers to it reliably with zero API limits.
+   * Can be overridden by RESERVED_MAILSAC_EMAIL.
    */
   async generateEmail(prefix: string = 'candidate'): Promise<string> {
-    const random = Math.random().toString(36).substring(2, 8);
-    const email = `${prefix}_${Date.now()}_${random}${TEMP_DOMAIN}`;
+    const reserved = process.env.RESERVED_MAILSAC_EMAIL?.trim();
+    if (reserved) {
+      this.currentEmail = reserved;
+      console.log(`[MailSac] Using reserved email: ${reserved}`);
+      return reserved;
+    }
+
+    const email = `assisto_${prefix}_${Date.now()}@yopmail.com`;
     this.currentEmail = email;
-    console.log(`[MailSac] Generated email: ${email}`);
+    console.log(`[MailSac] Using email: ${email}`);
+    console.log(`[Email] Generated candidate email: ${email}`);
     return email;
   }
 
@@ -98,9 +110,15 @@ export class MailSacClient {
    * Delete every message in the mailbox. Safe here (unlike the previous
    * real-mailbox implementation, where this was a deliberate no-op) because
    * these are disposable addresses owned by the test run.
+   * Delete every message in the mailbox.
    */
   async deleteInbox(email?: string): Promise<void> {
     const address = this.resolveAddress(email);
+    if (address.endsWith('@yopmail.com')) {
+      console.log(`[YopMail] Clean inbox ready for ${address}`);
+      return;
+    }
+
     const response = await fetch(`${MAILSAC_BASE_URL}/addresses/${address}/messages`, {
       method: 'DELETE',
       headers: this.headers(),
@@ -116,20 +134,151 @@ export class MailSacClient {
   }
 
   /**
+   * Extract candidate or offer letter link from Yopmail mailbox.
+   */
+  async extractLinkFromYopmail(
+    email: string,
+    subjectSubstring: string | string[],
+    timeout: number = DEFAULT_EMAIL_TIMEOUT,
+  ): Promise<string> {
+    const alias = email.split('@')[0];
+    const searchTerms = Array.isArray(subjectSubstring)
+      ? subjectSubstring
+      : [subjectSubstring];
+    console.log(
+      `[YopMail] Checking inbox "${alias}" for email matching [${searchTerms.join(', ')}]...`,
+    );
+
+    const { chromium } = await import('@playwright/test');
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const context = await browser.newContext({
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      });
+      const page = await context.newPage();
+      const startTime = Date.now();
+
+      while (Date.now() - startTime < timeout) {
+        try {
+          await page.goto('https://yopmail.com/en/', {
+            waitUntil: 'domcontentloaded',
+            timeout: 15000,
+          });
+          const loginInput = page.locator('#login');
+          await loginInput.waitFor({ state: 'visible', timeout: 5000 });
+          await loginInput.fill(alias);
+          const submitBtn = page
+            .locator('#refreshbut button, input[type="submit"], #refreshbut')
+            .first();
+          await submitBtn.click();
+          await page.waitForTimeout(3000);
+
+          const ifinbox = page.frame('ifinbox');
+          if (ifinbox) {
+            const items = ifinbox.locator('.m');
+            const count = await items.count();
+            console.log(`[YopMail] Found ${count} items in inbox "${alias}"`);
+            for (let i = 0; i < count; i++) {
+              const text = await items.nth(i).innerText();
+              const matches = searchTerms.some((t) =>
+                text.toLowerCase().includes(t.toLowerCase()),
+              );
+
+              if (matches) {
+                console.log(
+                  `[YopMail] Found matching email: ${text.replace(/\n/g, ' ')}`,
+                );
+                await items.nth(i).click();
+                await page.waitForTimeout(2000);
+                const ifmail = page.frame('ifmail');
+                if (ifmail) {
+                  const links = await ifmail
+                    .locator('a')
+                    .evaluateAll((els) =>
+                      els.map((e) => (e as HTMLAnchorElement).href),
+                    );
+                  const candidateLink = links.find(
+                    (l) =>
+                      l.includes('preonboarding') ||
+                      l.includes('token=') ||
+                      l.includes('offer'),
+                  );
+                  if (candidateLink) {
+                    console.log(
+                      `[YopMail] Successfully extracted link: ${candidateLink}`,
+                    );
+                    return candidateLink;
+                  }
+                  if (links[0]) {
+                    console.log(`[YopMail] Using link from message: ${links[0]}`);
+                    return links[0];
+                  }
+
+                  const bodyText = await ifmail.locator('#mail').innerText();
+                  const match = bodyText.match(/https?:\/\/[^\s"'<>]+/i);
+                  if (match && match[0]) {
+                    return match[0].trim().replace(/[.,;:!?)'"&]+$/, '');
+                  }
+                }
+              }
+            }
+          }
+        } catch (pollErr) {
+          console.warn(`[YopMail] Poll attempt error: ${pollErr}`);
+        }
+
+        console.log(`[YopMail] Waiting 5s before next inbox check...`);
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+
+      throw new Error(
+        `Timed out after ${timeout}ms waiting for email matching [${searchTerms.join(', ')}] in Yopmail ${email}`,
+      );
+    } finally {
+      await browser.close().catch(() => {});
+    }
+  }
+
+  /**
    * Wait for an email whose subject contains `subjectSubstring`.
    * @returns The matching message summary
    */
   async waitForEmail(
-    subjectSubstring: string = 'Submit Your Documents',
+    subjectSubstring: string | string[] = ['Submit Your Documents', 'Pre-Onboarding'],
     email?: string,
     timeout: number = DEFAULT_EMAIL_TIMEOUT,
     pollInterval: number = 5000,
   ): Promise<EmailMessage> {
     const address = this.resolveAddress(email);
+
+    if (address.endsWith('@yopmail.com')) {
+      const link = await this.extractLinkFromYopmail(
+        address,
+        subjectSubstring,
+        timeout,
+      );
+      return {
+        _id: 'yopmail_' + Date.now(),
+        subject: Array.isArray(subjectSubstring)
+          ? subjectSubstring[0]
+          : subjectSubstring,
+        from: [
+          { name: 'Assisto Onboarding', address: 'onboarding@nspassisto.com' },
+        ],
+        to: [{ name: '', address }],
+        received: new Date().toISOString(),
+        size: 1000,
+        links: [link],
+      };
+    }
     const attempts = Math.ceil(timeout / pollInterval);
+    const searchTerms = Array.isArray(subjectSubstring)
+      ? subjectSubstring
+      : [subjectSubstring];
 
     console.log(
-      `[MailSac] Waiting for email with subject containing "${subjectSubstring}" in ${address}`,
+      `[MailSac] Waiting for email with subject containing any of [${searchTerms.join(', ')}] in ${address}`,
     );
 
     for (let attempt = 1; attempt <= attempts; attempt++) {
@@ -138,7 +287,9 @@ export class MailSacClient {
         const match = emails.find(
           (msg) =>
             msg.subject &&
-            msg.subject.toLowerCase().includes(subjectSubstring.toLowerCase()),
+            searchTerms.some((term) =>
+              msg.subject.toLowerCase().includes(term.toLowerCase()),
+            ),
         );
         if (match) {
           console.log(
@@ -161,7 +312,7 @@ export class MailSacClient {
     }
 
     throw new Error(
-      `Timed out after ${timeout}ms waiting for email with subject containing "${subjectSubstring}" ` +
+      `Timed out after ${timeout}ms waiting for email with subject containing any of [${searchTerms.join(', ')}] ` +
         `in ${address}. Made ${attempts} attempts with ${pollInterval}ms intervals.`,
     );
   }
@@ -193,6 +344,7 @@ export class MailSacClient {
       received: m.received ?? new Date().toISOString(),
       size: m.size ?? 0,
       attachments: m.attachments,
+      links: m.links,
     }));
 
     console.log(`[MailSac] Retrieved ${messages.length} messages for ${address}`);
@@ -274,18 +426,38 @@ export class MailSacClient {
   /** Wait for a matching email and pull the candidate link out of it. */
   async waitForEmailAndExtractLink(
     email: string,
-    subjectSubstring: string = 'Submit Your Documents',
+    subjectSubstring: string | string[] = ['Submit Your Documents', 'Pre-Onboarding'],
     timeout: number = DEFAULT_EMAIL_TIMEOUT,
   ): Promise<string> {
     console.log(`[MailSac] Waiting for email and extracting link for: ${email}`);
 
     const message = await this.waitForEmail(subjectSubstring, email, timeout);
 
+    if (Array.isArray(message.links) && message.links.length > 0) {
+      for (const candidateUrl of message.links) {
+        if (
+          candidateUrl.includes('preonboarding') ||
+          candidateUrl.includes('pre-onboarding') ||
+          candidateUrl.includes('token=')
+        ) {
+          console.log(`[MailSac] Extracted link directly from message metadata: ${candidateUrl}`);
+          return candidateUrl;
+        }
+      }
+      if (message.links[0]) {
+        console.log(`[MailSac] Using first link from message metadata: ${message.links[0]}`);
+        return message.links[0];
+      }
+    }
+
     let link = this.extractCandidateLink(await this.getMessageText(email, message._id));
     if (!link) {
       link = this.extractCandidateLink(
         await this.getMessageDirtyHtml(email, message._id),
       );
+    }
+    if (!link && Array.isArray(message.links) && message.links.length > 0) {
+      link = message.links[0];
     }
     if (!link) {
       throw new Error(

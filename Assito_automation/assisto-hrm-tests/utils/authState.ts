@@ -28,7 +28,14 @@ import loginData from '../test-data/loginData.json';
 import { getEnvVar, getLoginUrl } from './helpers';
 
 /** Roles a spec can authenticate as. 'none' means "stay logged out". */
-export type UserRole = 'none' | 'admin' | 'businessHR' | 'chro' | 'hrManager';
+export type UserRole =
+  | 'none'
+  | 'admin'
+  | 'businessHR'
+  | 'chro'
+  | 'hrManager'
+  /** IT operator who provisions organisation mail during employee onboarding. */
+  | 'it';
 
 /** A cached session: the cookie/localStorage half plus a sessionStorage snapshot. */
 export interface CachedSession {
