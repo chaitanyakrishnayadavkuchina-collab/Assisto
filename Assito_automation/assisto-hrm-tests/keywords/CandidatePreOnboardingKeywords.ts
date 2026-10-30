@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { CandidatePreOnboardingPage } from '@pages/CandidatePreOnboardingPage';
 
 /**
@@ -546,7 +546,7 @@ export class CandidatePreOnboardingKeywords {
     return (await error.textContent() ?? '').trim();
   }
 
-  async verifyFieldError(fieldLocator: any, errorMessage: string): Promise<void> {
+  async verifyFieldError(fieldLocator: Locator, errorMessage: string): Promise<void> {
     await expect(fieldLocator.locator('..').locator('[class*="error"], [class*="Error"]')).toContainText(errorMessage);
   }
 }

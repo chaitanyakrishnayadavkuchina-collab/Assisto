@@ -1,4 +1,4 @@
-import { MailSacClient } from './utils/MailSacClient';
+import { MailSacClient } from '@utils/MailSacClient';
 import 'dotenv/config';
 
 async function main() {

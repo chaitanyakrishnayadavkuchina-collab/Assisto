@@ -239,11 +239,29 @@ export class SelfOnboardingPage {
     return this.page.getByText(step, { exact: true });
   }
 
-  /** Current step number from the "Step N of 8" indicator; 0 when absent. */
+  /** Current step number from the indicator or active section heading; 0 when absent. */
   async getCurrentStepNumber(): Promise<number> {
-    const text = (await this.stepIndicator.textContent().catch(() => '')) ?? '';
-    const match = text.match(/Step (\d+) of 8/);
-    return match ? Number(match[1]) : 0;
+    const indicator = this.page
+      .locator('div, span, p')
+      .filter({ hasText: /Step\s*\d+\s*of\s*8/i })
+      .first();
+    if (await indicator.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const text = await indicator.innerText().catch(() => '');
+      const match = text.match(/Step\s*(\d+)\s*of\s*8/i);
+      if (match) return Number(match[1]);
+    }
+
+    // Fallback: detect active step via unique section headings
+    if (await this.page.getByText(/Meet The Team/i).first().isVisible({ timeout: 800 }).catch(() => false)) return 8;
+    if (await this.page.getByText(/Induction/i).first().isVisible({ timeout: 800 }).catch(() => false)) return 7;
+    if (await this.page.getByText(/Agreements and Policies/i).first().isVisible({ timeout: 800 }).catch(() => false)) return 6;
+    if (await this.page.getByText(/Statutory Details/i).first().isVisible({ timeout: 800 }).catch(() => false)) return 5;
+    if (await this.page.getByText(/Employment History|Educational Details/i).first().isVisible({ timeout: 800 }).catch(() => false)) return 4;
+    if (await this.page.getByText(/Identity Proofs|Upload Documents/i).first().isVisible({ timeout: 800 }).catch(() => false)) return 3;
+    if (await this.page.getByText(/Personal Details/i).first().isVisible({ timeout: 800 }).catch(() => false)) return 2;
+    if (await this.welcomeHeading.isVisible({ timeout: 800 }).catch(() => false)) return 1;
+
+    return 0;
   }
 
   /**

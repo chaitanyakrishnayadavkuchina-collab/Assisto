@@ -4,8 +4,7 @@ import loginData from '@test-data/loginData.json';
 import { bringCandidateToOfferLetterTabReady, resolveContractTemplate, RegisteredCandidate } from '@workflows/onboardingSetupHelpers';
 import * as fs from 'fs';
 import * as path from 'path';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdfParse = require('pdf-parse') as (data: Buffer) => Promise<{ text: string; numpages: number }>;
+import pdfParse from 'pdf-parse';
 
 const loginUrl = getLoginUrl();
 

@@ -275,6 +275,11 @@ export class PreOnboardingWorkflowsKeywords {
     return await this.workflowsPage.isOfferLetterSettingsVisible();
   }
 
+  /** Expand a section by index */
+  async expandSection(index: number): Promise<void> {
+    await this.workflowsPage.expandSection(index);
+  }
+
   /** Check if the Verification Settings section is visible */
   async isVerificationSettingsVisible(): Promise<boolean> {
     return await this.workflowsPage.isVerificationSettingsVisible();

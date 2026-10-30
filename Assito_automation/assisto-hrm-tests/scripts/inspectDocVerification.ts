@@ -1,9 +1,9 @@
 import { chromium } from '@playwright/test';
-import loginData from './test-data/loginData.json';
-import { getLoginUrl } from './utils/helpers';
-import { LoginKeywords } from './keywords/LoginKeywords';
-import { CandidateRegistrationKeywords } from './keywords/CandidateRegistrationKeywords';
-import { HrDocumentReviewKeywords } from './keywords/HrDocumentReviewKeywords';
+import loginData from '@test-data/loginData.json';
+import { getLoginUrl } from '@utils/helpers';
+import { LoginKeywords } from '@keywords/LoginKeywords';
+import { CandidateRegistrationKeywords } from '@keywords/CandidateRegistrationKeywords';
+import { HrDocumentReviewKeywords } from '@keywords/HrDocumentReviewKeywords';
 
 async function main() {
   const browser = await chromium.launch({ headless: true });

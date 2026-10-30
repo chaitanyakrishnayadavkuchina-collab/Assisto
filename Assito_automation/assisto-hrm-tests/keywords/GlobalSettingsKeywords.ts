@@ -426,8 +426,8 @@ export class SettingsKeywords {
    * Set up a network error listener that captures 4xx/5xx responses and
    * takes a DevTools screenshot on failure. Returns a function to remove the listener.
    */
-  onNetworkError(handler: (response: import('@playwright/test').APIResponse) => void): () => void {
-    const listener = (response: import('@playwright/test').APIResponse) => {
+  onNetworkError(handler: (response: import('@playwright/test').Response) => void): () => void {
+    const listener = (response: import('@playwright/test').Response) => {
       const status = response.status();
       if (status >= 400 && status < 600) {
         handler(response);
@@ -435,11 +435,11 @@ export class SettingsKeywords {
     };
 
     // Use the page's response event system
-    (this.page as any).on('response', listener);
+    this.page.on('response', listener);
 
     // Return cleanup function
     return () => {
-      (this.page as any).off('response', listener);
+      this.page.off('response', listener);
     };
   }
 

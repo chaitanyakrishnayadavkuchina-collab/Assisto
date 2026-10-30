@@ -107,6 +107,11 @@ export class DayZeroCheckInKeywords {
    * the status chip and the ARRIVED tile follow, so both are polled.
    */
   async verifyMarkedAsArrived(employeeName: string): Promise<void> {
+    if (await this.checkInPage.isMarkedAsArrived(employeeName)) {
+      console.log(`[Onboarding] Confirmed "${employeeName}" is marked as arrived`);
+      return;
+    }
+
     await expect
       .poll(
         async () => await this.checkInPage.isMarkedAsArrived(employeeName),

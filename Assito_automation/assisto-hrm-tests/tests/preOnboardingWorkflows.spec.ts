@@ -144,7 +144,7 @@ test.describe('Pre-Onboarding Workflow Configurations', () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Expand Offer Letter Release section to reveal nested settings
-    await (preOnboardingWorkflowsKeywords as any).workflowsPage.expandSection(5);
+    await preOnboardingWorkflowsKeywords.expandSection(5);
     await page.waitForLoadState('networkidle');
 
     // Verify sections are visible

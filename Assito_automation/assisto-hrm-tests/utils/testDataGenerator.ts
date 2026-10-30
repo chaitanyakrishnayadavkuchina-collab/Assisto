@@ -1,4 +1,5 @@
 import { randomString } from './helpers';
+import type { MailSacClient } from './MailSacClient';
 import {
   randomString as randomLowerString,
   randomStringUpperCase,
@@ -272,7 +273,7 @@ export function generateRandomPhone(prefix: string = '9999'): string {
  * @returns SimplifiedCandidateData object with firstName, lastName, email, phone, applicationNumber
  */
 export async function generateCandidateData(
-  mailSacClient?: any,
+  mailSacClient?: MailSacClient,
   applicationNumber?: string,
 ): Promise<SimplifiedCandidateData> {
   // Generate compact email using MailSac format

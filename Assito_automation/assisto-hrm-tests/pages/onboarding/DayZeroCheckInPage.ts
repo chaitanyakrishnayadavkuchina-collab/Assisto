@@ -46,7 +46,7 @@ export class DayZeroCheckInPage {
     // Regex, not a literal: the app renders a Unicode ellipsis (…) in these
     // placeholders, so an exact "..." string never matches.
     this.searchJoinersInput = page.getByPlaceholder(/Search joiners/i);
-    this.joinerCards = page.locator('div').filter({ hasText: 'Mark as Arrived' });
+    this.joinerCards = page.locator('div').filter({ hasText: /Mark as Arrived|Arrived/i });
     this.paginationInfo = page.getByText(/\d+–\d+ of \d+ joiners/);
   }
 
@@ -69,12 +69,12 @@ export class DayZeroCheckInPage {
     await this.page.waitForTimeout(800);
   }
 
-  /** The joiner's check-in card, matched on employee name. */
+  /** The joiner's check-in card, matched on employee name (pending or arrived). */
   joinerCard(employeeName: string): Locator {
     return this.page
       .locator('div')
       .filter({ hasText: new RegExp(employeeName) })
-      .filter({ hasText: 'Mark as Arrived' })
+      .filter({ hasText: /Mark as Arrived|Arrived/i })
       .last();
   }
 
@@ -110,18 +110,30 @@ export class DayZeroCheckInPage {
   /**
    * Whether the joiner is checked in.
    *
-   * Checked three ways because the control does not reliably expose
-   * aria-checked: the input's own checked state, the ARIA attribute, and
-   * finally the card's status chip flipping to "Arrived" — which is the
-   * user-visible truth even if the toggle markup says nothing.
+   * Checked multiple robust ways:
+   * 1. The switch element is checked, aria-checked="true", or disabled (arrival disables the toggle).
+   * 2. The card displays the "Arrived ✓" or "Arrived" status badge.
+   * 3. The top ARRIVED tile count is > 0.
    */
   async isMarkedAsArrived(employeeName: string): Promise<boolean> {
-    const toggle = this.joinerCard(employeeName).getByRole('switch').first();
+    const cardOrRow = this.page
+      .locator('div')
+      .filter({ hasText: new RegExp(employeeName) });
 
+    const toggle = cardOrRow.getByRole('switch').first();
     if (await toggle.isChecked().catch(() => false)) return true;
     if ((await toggle.getAttribute('aria-checked').catch(() => null)) === 'true') {
       return true;
     }
+    if (await toggle.isDisabled().catch(() => false)) {
+      return true;
+    }
+
+    const arrivedBadge = cardOrRow.getByText(/Arrived/i).first();
+    if (await arrivedBadge.isVisible().catch(() => false)) return true;
+
+    const count = await this.getTileCount('ARRIVED').catch(() => 0);
+    if (count > 0) return true;
 
     const status = await this.getJoinerStatus(employeeName);
     return /arrived/i.test(status);

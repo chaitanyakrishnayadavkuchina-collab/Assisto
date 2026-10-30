@@ -25,7 +25,7 @@ import { chromium, type BrowserContextOptions } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import loginData from '../test-data/loginData.json';
-import { getEnvVar, getLoginUrl } from './helpers';
+import { getLoginUrl } from './helpers';
 
 /** Roles a spec can authenticate as. 'none' means "stay logged out". */
 export type UserRole =
@@ -61,17 +61,23 @@ function credentialsFor(role: Exclude<UserRole, 'none'>): {
   password: string;
 } {
   if (role === 'admin') {
-    return {
-      email: getEnvVar('TEST_EMAIL'),
-      password: getEnvVar('TEST_PASSWORD'),
-    };
+    const email = process.env.TEST_EMAIL || process.env.ADMIN_EMAIL;
+    const password = process.env.TEST_PASSWORD || process.env.ADMIN_PASSWORD;
+    if (!email || !password) {
+      throw new Error('[authState] Missing TEST_EMAIL/ADMIN_EMAIL or TEST_PASSWORD/ADMIN_PASSWORD in environment');
+    }
+    return { email, password };
   }
 
   const account = loginData.roles[role];
   if (!account) {
     throw new Error(`[authState] No credentials configured for role "${role}"`);
   }
-  return { email: account.email, password: account.password };
+  const rolePrefix = role.toUpperCase();
+  return {
+    email: process.env[`${rolePrefix}_EMAIL`] || account.email,
+    password: process.env[`${rolePrefix}_PASSWORD`] || account.password,
+  };
 }
 
 /** Path of the cached storageState file for a role. */

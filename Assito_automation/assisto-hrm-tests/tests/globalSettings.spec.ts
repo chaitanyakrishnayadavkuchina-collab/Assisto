@@ -3,16 +3,16 @@ import globalSettingsData from '@test-data/globalSettingsData.json';
 import { getLoginUrl } from '@utils/helpers';
 
 test.describe('Global Settings - Company Settings & Business Units', () => {
-  const loginUrl: string = getLoginUrl();
+  test.use({ role: 'admin' });
 
-  test.beforeEach(async ({ loginKeywords }) => {
-    await loginKeywords.openLoginPage(loginUrl);
-    await loginKeywords.login(
-      process.env.TEST_EMAIL || 'user@example.com',
-      process.env.TEST_PASSWORD || 'Password123!',
-    );
-    await loginKeywords.verifyLoginSuccess();
-  });
+
+
+
+
+
+
+
+
 
   // ==========================================
   //  SECTION 1: COMPANY SETTINGS - POSITIVE
@@ -27,7 +27,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
     }) => {
       await settingsKeywords.navigateToCompanySettings();
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     test('should display Brand Asset upload section', async ({
       settingsKeywords,
@@ -39,7 +39,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       const uploadButton = page.getByRole('button', { name: 'Upload' });
       await expect(uploadButton).toBeVisible();
-    });
+  
 
     test('should display all Basic Information fields', async ({
       settingsKeywords,
@@ -56,7 +56,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       await expect(settingsPage.getRegisteredStateSelect()).toBeVisible();
       await expect(settingsPage.getOperationalTimezoneSelect()).toBeVisible();
       await expect(settingsPage.getCorporateHeadquartersAddressInput()).toBeVisible();
-    });
+  
 
     test('should display Regulatory & Statutory Numbers section', async ({
       settingsKeywords,
@@ -73,7 +73,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       await expect(settingsPage.getLinLabourIdentificationInput()).toBeVisible();
       await expect(settingsPage.getGstinInput()).toBeVisible();
       await expect(settingsPage.getCinCorporateIdentityInput()).toBeVisible();
-    });
+  
 
     // ── Save with full data ──
 
@@ -90,7 +90,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       // After saving, page should remain visible (no crash)
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     test('should fill and save company profile with regulatory numbers', async ({
       settingsKeywords,
@@ -105,7 +105,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       await settingsKeywords.saveCompanyProfile();
 
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     // ── Discard ──
 
@@ -125,7 +125,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       // Page should still be visible and unchanged
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     // ── Brand Asset ──
 
@@ -137,8 +137,8 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       await page.waitForLoadState('networkidle');
 
       await expect(page.getByRole('button', { name: 'Upload Brand Asset' })).toBeVisible();
-    });
-  });
+  
+
 
   // ==========================================
   //  SECTION 2: COMPANY SETTINGS - NEGATIVE
@@ -158,7 +158,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       // Page should still be visible (validation may show error messages)
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     test('should accept saving with only required fields', async ({
       settingsKeywords,
@@ -175,11 +175,11 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
         registeredCountry: '',
         registeredState: '',
         operationalTimezone: '',
-      });
+    
       await settingsKeywords.saveCompanyProfile();
 
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     test('should fill invalid email formats and save', async ({
       settingsKeywords,
@@ -197,7 +197,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       // Page should remain visible
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     test('should handle extremely long legal entity name', async ({
       settingsKeywords,
@@ -213,7 +213,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       // Page should remain visible
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
+  
 
     test('should save with empty regulatory numbers', async ({
       settingsKeywords,
@@ -228,8 +228,8 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       await settingsKeywords.saveCompanyProfile();
 
       await expect(settingsPage.isCompanySettingsPage()).toBeTruthy();
-    });
-  });
+  
+
 
   // ==========================================
   //  SECTION 3: BUSINESS UNITS - POSITIVE
@@ -244,7 +244,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
     }) => {
       await settingsKeywords.navigateToBusinessUnit();
       await expect(settingsPage.isBusinessUnitPage()).toBeTruthy();
-    });
+  
 
     test('should display counter cards on Business Unit page', async ({
       settingsKeywords,
@@ -260,7 +260,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       expect(totalUnits).toBeTruthy();
       expect(withUnitHead).toBeTruthy();
       expect(pendingHead).toBeTruthy();
-    });
+  
 
     // ── Add Unit ──
 
@@ -276,7 +276,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       // After save, the Add Unit button should be visible again (modal closed)
       const addUnitButton = page.getByRole('button', { name: 'Add Unit' });
       await expect(addUnitButton).toBeVisible();
-    });
+  
 
     test('should add a new business unit with description', async ({
       settingsKeywords,
@@ -290,7 +290,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       // After save, the Add Unit button should be visible again
       const addUnitButton = page.getByRole('button', { name: 'Add Unit' });
       await expect(addUnitButton).toBeVisible();
-    });
+  
 
     // ── View Unit ──
 
@@ -311,7 +311,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       // Modal should be closed
       await expect(page.getByRole('dialog')).not.toBeVisible();
-    });
+  
 
     // ── Edit Unit ──
 
@@ -327,7 +327,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       // After save, the Add Unit button should be visible (edit dialog closed)
       const addUnitButton = page.getByRole('button', { name: 'Add Unit' });
       await expect(addUnitButton).toBeVisible();
-    });
+  
 
     test('should edit and cancel a business unit', async ({
       settingsKeywords,
@@ -341,7 +341,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       // Add Unit button should be visible after cancel
       const addUnitButton = page.getByRole('button', { name: 'Add Unit' });
       await expect(addUnitButton).toBeVisible();
-    });
+  
 
     // ── Cancel Add Unit ──
 
@@ -357,8 +357,8 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       // Add Unit button should still be visible
       const addUnitButton = page.getByRole('button', { name: 'Add Unit' });
       await expect(addUnitButton).toBeVisible();
-    });
-  });
+  
+
 
   // ==========================================
   //  SECTION 4: BUSINESS UNITS - NEGATIVE
@@ -380,7 +380,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       
       // The Add Unit button should be visible after canceling
       await expect(page.getByRole('button', { name: 'Add Unit' })).toBeVisible();
-    });
+  
 
     test('should show validation when adding with missing code', async ({
       settingsKeywords,
@@ -397,8 +397,8 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       
       // The Add Unit button should be visible after canceling
       await expect(page.getByRole('button', { name: 'Add Unit' })).toBeVisible();
-    });
-  });
+  
+
 
   // ==========================================
   //  SECTION 5: BUSINESS UNITS - EDGE CASES
@@ -419,7 +419,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       // Add second unit
       await settingsKeywords.addBusinessUnit(globalSettingsData.validBusinessUnit2);
       await expect(page.getByRole('button', { name: 'Add Unit' })).toBeVisible();
-    });
+  
 
     test('should show business unit name in view modal', async ({
       settingsKeywords,
@@ -434,7 +434,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       const unitName = await page.getByRole('heading', { level: 2 }).first().textContent();
       expect(unitName).toBeTruthy();
       expect(unitName!.length).toBeGreaterThan(0);
-    });
+  
 
     test('should show unit head in view modal', async ({
       settingsKeywords,
@@ -446,7 +446,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       const unitHead = await settingsKeywords.getViewModalUnitHead();
       // Unit head should be displayed (either a name or empty placeholder)
       expect(unitHead).toBeTruthy();
-    });
+  
 
     test('should show status in view modal', async ({
       settingsKeywords,
@@ -457,8 +457,8 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       const status = await settingsKeywords.getViewModalStatus();
       expect(status).toBeTruthy();
-    });
-  });
+  
+
 
   // ==========================================
   //  SECTION 6: NETWORK ERROR DETECTION
@@ -474,7 +474,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
       // Set up error listener
       const removeListener = settingsKeywords.onNetworkError((response) => {
         networkErrors.push(response.status());
-      });
+    
 
       try {
         await settingsKeywords.navigateToCompanySettings();
@@ -488,7 +488,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
         const errorMsg = `Network errors detected: ${networkErrors.join(', ')}`;
         console.error(errorMsg);
       }
-    });
+  
 
     test('should detect 4xx/5xx errors during business unit operations', async ({
       settingsKeywords,
@@ -498,7 +498,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
 
       const removeListener = settingsKeywords.onNetworkError((response) => {
         networkErrors.push(response.status());
-      });
+    
 
       try {
         await settingsKeywords.navigateToBusinessUnit();
@@ -511,7 +511,7 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
         const errorMsg = `Network errors detected: ${networkErrors.join(', ')}`;
         console.error(errorMsg);
       }
-    });
+  
 
     test('should capture screenshot when network errors occur', async ({
       settingsKeywords,
@@ -540,8 +540,8 @@ test.describe('Global Settings - Company Settings & Business Units', () => {
         await settingsKeywords.takeDevToolsScreenshot(screenshotPath);
         throw error;
       }
-    });
-  });
+  
+
 });
 
 

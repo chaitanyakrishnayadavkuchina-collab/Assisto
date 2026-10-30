@@ -1,4 +1,4 @@
-import { type Page, type Locator } from '@playwright/test';
+import { type Page, type Locator, expect } from '@playwright/test';
 
 /**
  * SetPasswordPage covers the "Set your password" screen the new joiner reaches
@@ -75,13 +75,20 @@ export class SetPasswordPage {
   }
 
   async isPrivacyPolicyShown(): Promise<boolean> {
-    return await this.privacyPolicyHeading
-      .isVisible({ timeout: 10000 })
-      .catch(() => false);
+    return (
+      (await this.privacyPolicyHeading.isVisible({ timeout: 5000 }).catch(() => false)) ||
+      (await this.privacyPolicyDialog.first().isVisible({ timeout: 5000 }).catch(() => false))
+    );
   }
 
   async acceptPrivacyPolicy(): Promise<void> {
-    await this.privacyPolicyAgreeCheckbox.check();
+    const dialog = this.privacyPolicyDialog.first();
+    const checkbox = dialog.locator('input[type="checkbox"]').first();
+    await checkbox.check({ force: true }).catch(async () => {
+      await dialog.locator('label').filter({ hasText: /privacy policy/i }).click();
+    });
+    await expect(this.privacyPolicyContinueButton).toBeEnabled({ timeout: 5000 });
     await this.privacyPolicyContinueButton.click();
+    await this.page.waitForLoadState('networkidle').catch(() => {});
   }
 }
